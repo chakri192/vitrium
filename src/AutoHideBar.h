@@ -1,0 +1,55 @@
+#pragma once
+
+#include <QWidget>
+#include <QPropertyAnimation>
+#include <QGraphicsOpacityEffect>
+
+class QSlider;
+class QMainWindow;
+class QMouseEvent;
+
+class TrafficDot : public QWidget {
+    Q_OBJECT
+public:
+    TrafficDot(const QString &color, const QString &hoverColor, QWidget *parent = nullptr);
+
+signals:
+    void clicked();
+
+protected:
+    void mousePressEvent(QMouseEvent *event) override;
+};
+
+class AutoHideBar : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit AutoHideBar(QMainWindow *window);
+
+    QSlider *opacitySlider() const { return m_opacitySlider; }
+    bool isRevealed() const { return m_visible; }
+
+    void reveal();
+    void conceal();
+
+signals:
+    void openRequested();
+    void saveRequested();
+    void saveAsRequested();
+    void closeRequested();
+    void minimizeRequested();
+    void maximizeRequested();
+
+protected:
+    void mousePressEvent(QMouseEvent *event) override;
+
+private:
+    void buildContents();
+
+    QMainWindow *m_window;
+    QGraphicsOpacityEffect *m_opacityFx;
+    QPropertyAnimation *m_fade;
+    QPropertyAnimation *m_slide;
+    QSlider *m_opacitySlider;
+    bool m_visible = false;
+};
