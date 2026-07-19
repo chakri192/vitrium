@@ -10,6 +10,8 @@ class QPaintEvent;
 class QFocusEvent;
 class QWheelEvent;
 class QMouseEvent;
+class QKeyEvent;
+class QTextDocument;
 
 // Phosphor-green accent, shared across the gutter/editor/chrome.
 inline const QColor kAccent(110, 231, 183);
@@ -74,6 +76,11 @@ public:
     // resolution for its color.
     void ensureTextVisible();
 
+    // Swaps in a document belonging to a different tab and re-applies the
+    // per-document formatting (line height, base text color) that would
+    // otherwise only ever have been set up for the original document.
+    void adoptDocument(QTextDocument *doc);
+
     int lineNumberAreaWidth() const;
     void paintLineNumbers(QPaintEvent *event);
     QSize lineNumberAreaSize() const;
@@ -86,6 +93,7 @@ protected:
     void focusInEvent(QFocusEvent *event) override;
     void focusOutEvent(QFocusEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
     void updateGutterWidth();
