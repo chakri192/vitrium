@@ -102,7 +102,6 @@ private slots:
 
 private:
     void applyPalette();
-    void applyLineHeight(double factor);
     void applyBaseTextFormat();
 
     LineNumberArea *m_gutter;

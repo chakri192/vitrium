@@ -56,6 +56,20 @@ MainWindow::MainWindow() : QMainWindow(nullptr) {
     layout->setSpacing(0);
     setCentralWidget(container);
 
+    // AutoHideBar is a normal layout item now, not an absolute-positioned
+    // overlay -- reveal()/conceal() animate its height, which makes the
+    // layout push the tab bar down instead of the two stacking on top of
+    // each other (which is what was causing the overlap/ghosting look).
+    m_topbar = new AutoHideBar(this);
+    layout->addWidget(m_topbar);
+    connect(m_topbar, &AutoHideBar::openRequested, this, &MainWindow::openFile);
+    connect(m_topbar, &AutoHideBar::saveRequested, this, &MainWindow::saveFile);
+    connect(m_topbar, &AutoHideBar::saveAsRequested, this, &MainWindow::saveFileAs);
+    connect(m_topbar, &AutoHideBar::closeRequested, this, &QWidget::close);
+    connect(m_topbar, &AutoHideBar::minimizeRequested, this, &QWidget::showMinimized);
+    connect(m_topbar, &AutoHideBar::maximizeRequested, this, &MainWindow::toggleMaximized);
+    connect(m_topbar->opacitySlider(), &QSlider::valueChanged, this, &MainWindow::setGlassOpacity);
+
     m_tabBar = new TabBar(container);
     layout->addWidget(m_tabBar);
     connect(m_tabBar, &TabBar::tabActivated, this, &MainWindow::activateTab);
@@ -74,19 +88,9 @@ MainWindow::MainWindow() : QMainWindow(nullptr) {
     m_barHideTimer.setSingleShot(true);
     connect(&m_barHideTimer, &QTimer::timeout, this, &MainWindow::concealBar);
 
-    m_topbar = new AutoHideBar(this);
-    connect(m_topbar, &AutoHideBar::openRequested, this, &MainWindow::openFile);
-    connect(m_topbar, &AutoHideBar::saveRequested, this, &MainWindow::saveFile);
-    connect(m_topbar, &AutoHideBar::saveAsRequested, this, &MainWindow::saveFileAs);
-    connect(m_topbar, &AutoHideBar::closeRequested, this, &QWidget::close);
-    connect(m_topbar, &AutoHideBar::minimizeRequested, this, &QWidget::showMinimized);
-    connect(m_topbar, &AutoHideBar::maximizeRequested, this, &MainWindow::toggleMaximized);
-    connect(m_topbar->opacitySlider(), &QSlider::valueChanged, this, &MainWindow::setGlassOpacity);
-
     // Cursor-position polling instead of relying on mouseMoveEvent/enterEvent/
-    // leaveEvent across a widget (the bar) that gets raised and re-stacked at
-    // runtime -- that event-delivery chain is exactly the kind of thing Qt's
-    // hover tracking doesn't handle reliably.
+    // leaveEvent -- Qt's hover-event delivery doesn't reliably handle a
+    // widget whose visibility changes at runtime.
     connect(&m_hoverPollTimer, &QTimer::timeout, this, &MainWindow::pollHover);
     m_hoverPollTimer.start(Theme::kHoverPollMs);
 
@@ -233,14 +237,15 @@ void MainWindow::showEvent(QShowEvent *event) {
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
     QMainWindow::resizeEvent(event);
-    m_topbar->setGeometry(0, m_topbar->isRevealed() ? 0 : -Theme::kBarHeight, width(),
-                           Theme::kBarHeight);
-    if (m_findBar) {
-        const QSize hint = m_findBar->sizeHint();
-        m_findBar->setGeometry(width() - hint.width() - 16, Theme::kTabHeight + 8,
-                                hint.width(), hint.height());
-    }
+    repositionFindBar();
     applyRoundedMask();
+}
+
+void MainWindow::repositionFindBar() {
+    if (!m_findBar) return;
+    const QSize hint = m_findBar->sizeHint();
+    const int top = m_topbar->height() + m_tabBar->height() + 8;
+    m_findBar->setGeometry(width() - hint.width() - 16, top, hint.width(), hint.height());
 }
 
 void MainWindow::applyRoundedMask() {
@@ -271,14 +276,11 @@ void MainWindow::pollHover() {
 
     if (inRevealZone || inBarArea) {
         cancelBarHide();
-        if (!m_topbar->isRevealed()) {
-            m_topbar->reveal();
-            m_topbar->raise();
-        }
-        m_topbar->setGeometry(0, 0, width(), Theme::kBarHeight);
+        if (!m_topbar->isRevealed()) m_topbar->reveal();
     } else if (m_topbar->isRevealed() && !m_barHideTimer.isActive()) {
         scheduleBarHide();
     }
+    repositionFindBar();
 }
 
 void MainWindow::cancelBarHide() { m_barHideTimer.stop(); }

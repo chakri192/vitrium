@@ -26,10 +26,12 @@ void TrafficDot::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) emit clicked();
 }
 
-AutoHideBar::AutoHideBar(QMainWindow *window) : QWidget(window), m_window(window) {
-    setFixedHeight(Theme::kBarHeight);
+AutoHideBar::AutoHideBar(QMainWindow *window) : QWidget(nullptr), m_window(window) {
+    setMinimumHeight(0);
+    setMaximumHeight(0);
+    setFixedHeight(0);  // starts collapsed; reveal()/conceal() animate this
     setStyleSheet(QString(
-        "background: rgba(9, 11, 12, 205); border-bottom: 1px solid rgba(%1, %2, %3, 60);")
+        "background: rgba(9, 11, 12, 235); border-bottom: 1px solid rgba(%1, %2, %3, 60);")
         .arg(kAccent.red()).arg(kAccent.green()).arg(kAccent.blue()));
 
     m_opacityFx = new QGraphicsOpacityEffect(this);
@@ -40,9 +42,17 @@ AutoHideBar::AutoHideBar(QMainWindow *window) : QWidget(window), m_window(window
     m_fade->setDuration(160);
     m_fade->setEasingCurve(QEasingCurve::OutCubic);
 
-    m_slide = new QPropertyAnimation(this, "pos", this);
-    m_slide->setDuration(160);
-    m_slide->setEasingCurve(QEasingCurve::OutCubic);
+    // QVariantAnimation instead of a QPropertyAnimation on maximumHeight --
+    // maximumHeight is only an upper bound, it doesn't force the layout to
+    // actually grow the widget past its natural content size, which is why
+    // an earlier version of this plateaued short of the target height.
+    // setFixedHeight() forces min == max == exactly this value every frame.
+    m_heightAnim = new QVariantAnimation(this);
+    m_heightAnim->setDuration(160);
+    m_heightAnim->setEasingCurve(QEasingCurve::OutCubic);
+    connect(m_heightAnim, &QVariantAnimation::valueChanged, this, [this](const QVariant &v) {
+        setFixedHeight(v.toInt());
+    });
 
     buildContents();
 }
@@ -111,10 +121,10 @@ void AutoHideBar::reveal() {
     m_fade->setStartValue(m_opacityFx->opacity());
     m_fade->setEndValue(1.0);
     m_fade->start();
-    m_slide->stop();
-    m_slide->setStartValue(pos());
-    m_slide->setEndValue(QPoint(0, 0));
-    m_slide->start();
+    m_heightAnim->stop();
+    m_heightAnim->setStartValue(height());
+    m_heightAnim->setEndValue(Theme::kBarHeight);
+    m_heightAnim->start();
 }
 
 void AutoHideBar::conceal() {
@@ -124,10 +134,10 @@ void AutoHideBar::conceal() {
     m_fade->setStartValue(m_opacityFx->opacity());
     m_fade->setEndValue(0.0);
     m_fade->start();
-    m_slide->stop();
-    m_slide->setStartValue(pos());
-    m_slide->setEndValue(QPoint(0, -height()));
-    m_slide->start();
+    m_heightAnim->stop();
+    m_heightAnim->setStartValue(height());
+    m_heightAnim->setEndValue(0);
+    m_heightAnim->start();
 }
 
 void AutoHideBar::mousePressEvent(QMouseEvent *event) {

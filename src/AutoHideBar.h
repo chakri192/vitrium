@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include <QPropertyAnimation>
+#include <QVariantAnimation>
 #include <QGraphicsOpacityEffect>
 
 class QSlider;
@@ -49,7 +50,7 @@ private:
     QMainWindow *m_window;
     QGraphicsOpacityEffect *m_opacityFx;
     QPropertyAnimation *m_fade;
-    QPropertyAnimation *m_slide;
+    QVariantAnimation *m_heightAnim;
     QSlider *m_opacitySlider;
     bool m_visible = false;
 };
