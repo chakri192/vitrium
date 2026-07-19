@@ -72,6 +72,7 @@ private:
     void buildActions();
     void buildStatusBar();
     void applyRoundedMask();
+    void repositionFindBar();
     void saveTo(const QString &path);
     void openPath(const QString &path);
     int createTab(const QString &path = QString());
