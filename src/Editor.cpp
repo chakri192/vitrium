@@ -11,6 +11,8 @@
 #include <QPalette>
 #include <QWheelEvent>
 #include <QMouseEvent>
+#include <QKeyEvent>
+#include <QTextDocument>
 #include <cmath>
 #include <algorithm>
 
@@ -198,6 +200,81 @@ void Editor::applyPalette() {
     viewport()->setPalette(vpPal);
 }
 
+namespace {
+const QString kOpeners = "([{\"'";
+const QString kClosers = ")]}\"'";
+
+QChar matchingCloser(QChar opener) {
+    switch (opener.unicode()) {
+        case '(': return ')';
+        case '[': return ']';
+        case '{': return '}';
+        case '"': return '"';
+        case '\'': return '\'';
+        default: return QChar();
+    }
+}
+}  // namespace
+
+void Editor::keyPressEvent(QKeyEvent *event) {
+    // Skip-over: typing a closer right where one already sits just moves
+    // past it instead of inserting a duplicate.
+    if (kClosers.contains(event->text()) && !event->text().isEmpty()) {
+        QTextCursor c = textCursor();
+        QTextDocument *doc = document();
+        if (c.position() < doc->characterCount() - 1) {
+            QTextCursor peek = c;
+            peek.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
+            if (peek.selectedText() == event->text()) {
+                c.movePosition(QTextCursor::NextCharacter);
+                setTextCursor(c);
+                return;
+            }
+        }
+    }
+
+    // Auto-close: typing an opener inserts its matching closer right after
+    // the cursor, cursor stays between them.
+    if (kOpeners.contains(event->text()) && !event->text().isEmpty() && !textCursor().hasSelection()) {
+        const QChar opener = event->text().at(0);
+        const QChar closer = matchingCloser(opener);
+        if (!closer.isNull()) {
+            QTextCursor c = textCursor();
+            c.insertText(QString(opener) + QString(closer));
+            c.movePosition(QTextCursor::PreviousCharacter);
+            setTextCursor(c);
+            return;
+        }
+    }
+
+    // Auto-indent: new line carries the current line's leading whitespace
+    // forward, with one extra indent level if the line ends on an opener.
+    if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) {
+        QTextCursor c = textCursor();
+        const QString lineText = c.block().text();
+        QString indent;
+        for (QChar ch : lineText) {
+            if (ch == ' ' || ch == '\t')
+                indent += ch;
+            else
+                break;
+        }
+        const QString trimmed = lineText.trimmed();
+        const bool endsOnOpener = !trimmed.isEmpty() && kOpeners.left(3).contains(trimmed.back());
+        QPlainTextEdit::keyPressEvent(event);
+        QString newIndent = indent;
+        if (endsOnOpener) newIndent += "    ";
+        if (!newIndent.isEmpty()) {
+            QTextCursor after = textCursor();
+            after.insertText(newIndent);
+            setTextCursor(after);
+        }
+        return;
+    }
+
+    QPlainTextEdit::keyPressEvent(event);
+}
+
 void Editor::wheelEvent(QWheelEvent *event) {
     if (event->modifiers() & Qt::ControlModifier) {
         const int step = event->angleDelta().y() > 0 ? 10 : -10;
@@ -271,6 +348,12 @@ void Editor::paintLineNumbers(QPaintEvent *event) {
 }
 
 void Editor::ensureTextVisible() { applyBaseTextFormat(); }
+
+void Editor::adoptDocument(QTextDocument *doc) {
+    setDocument(doc);
+    applyLineHeight(1.8);
+    ensureTextVisible();
+}
 
 void Editor::zoomTextIn() {
     zoomIn(1);
