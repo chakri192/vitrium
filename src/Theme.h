@@ -7,8 +7,11 @@ constexpr int kMaxAlpha = 255;       // full range: 0 = tint-free (blur only), 2
 
 constexpr int kHoverPollMs = 80;     // cursor-position poll for the reveal bar
 
-constexpr int kWindowRadius = 20;
-constexpr int kBarHeight = 40;
+constexpr int kWindowRadius = 14;
+constexpr int kBarHeight = 38;
+constexpr int kTabHeight = 32;
 constexpr int kRevealZonePx = 30;
 constexpr int kHideDelayMs = 550;
+
+constexpr int kMaxRecentFiles = 8;
 }  // namespace Theme
