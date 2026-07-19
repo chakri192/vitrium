@@ -123,7 +123,6 @@ Editor::Editor(QWidget *parent) : QPlainTextEdit(parent), m_alpha(Theme::kDefaul
     setViewportMargins(48, 14, 14, 14);
     setCursorWidth(0);  // native caret replaced by CursorGlow
 
-    applyLineHeight(1.8);
     applyBaseTextFormat();
     QTextCharFormat liveFmt;
     liveFmt.setForeground(kTextFg);
@@ -153,14 +152,6 @@ void Editor::focusInEvent(QFocusEvent *event) {
 void Editor::focusOutEvent(QFocusEvent *event) {
     QPlainTextEdit::focusOutEvent(event);
     m_cursorGlow->stop();
-}
-
-void Editor::applyLineHeight(double factor) {
-    QTextCursor cursor(document());
-    cursor.select(QTextCursor::Document);
-    QTextBlockFormat blockFmt;
-    blockFmt.setLineHeight(factor * 100, QTextBlockFormat::ProportionalHeight);
-    cursor.mergeBlockFormat(blockFmt);
 }
 
 void Editor::applyBaseTextFormat() {
@@ -351,7 +342,6 @@ void Editor::ensureTextVisible() { applyBaseTextFormat(); }
 
 void Editor::adoptDocument(QTextDocument *doc) {
     setDocument(doc);
-    applyLineHeight(1.8);
     ensureTextVisible();
 }
 
