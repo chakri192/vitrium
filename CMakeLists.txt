@@ -16,6 +16,7 @@ set(SOURCES
     src/Highlighter.cpp
     src/AutoHideBar.cpp
     src/FindBar.cpp
+    src/TabBar.cpp
     src/FileWorker.cpp
 )
 set(HEADERS
@@ -24,6 +25,7 @@ set(HEADERS
     src/Highlighter.h
     src/AutoHideBar.h
     src/FindBar.h
+    src/TabBar.h
     src/FileWorker.h
 )
 
