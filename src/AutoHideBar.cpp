@@ -10,6 +10,7 @@
 #include <QMouseEvent>
 #include <QWindow>
 #include <QCursor>
+#include <algorithm>
 
 TrafficDot::TrafficDot(const QString &color, const QString &hoverColor, QWidget *parent)
     : QWidget(parent) {
@@ -29,9 +30,9 @@ void TrafficDot::mousePressEvent(QMouseEvent *event) {
 AutoHideBar::AutoHideBar(QMainWindow *window) : QWidget(nullptr), m_window(window) {
     setMinimumHeight(0);
     setFixedHeight(Theme::kCollapsedBarHeight);  // reserved hit zone, not fully gone
-    setStyleSheet(QString(
-        "background: rgba(9, 11, 12, 235); border-bottom: 1px solid rgba(%1, %2, %3, 60);")
-        .arg(kAccent.red()).arg(kAccent.green()).arg(kAccent.blue()));
+    setBackgroundAlpha(Theme::kDefaultAlpha);  // real value comes from MainWindow's
+                                                 // loadSettings() shortly after construction;
+                                                 // this is just a sane initial default
 
     m_opacityFx = new QGraphicsOpacityEffect(this);
     m_opacityFx->setOpacity(0.0);
@@ -111,6 +112,15 @@ void AutoHideBar::buildContents() {
         "margin: -5px 0; border-radius: 6px; }")
         .arg(kAccent.red()).arg(kAccent.green()).arg(kAccent.blue()));
     layout->addWidget(m_opacitySlider);
+}
+
+void AutoHideBar::setBackgroundAlpha(int alpha) {
+    // Same floor+scale treatment as the gutter: tracks the slider, but never
+    // drops low enough to make the traffic-light controls hard to see.
+    const int barAlpha = std::clamp(alpha + 55, 90, 255);
+    setStyleSheet(QString(
+        "background: rgba(9, 11, 12, %4); border-bottom: 1px solid rgba(%1, %2, %3, 60);")
+        .arg(kAccent.red()).arg(kAccent.green()).arg(kAccent.blue()).arg(barAlpha));
 }
 
 void AutoHideBar::reveal() {

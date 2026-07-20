@@ -19,6 +19,10 @@ public:
     void removeTab(int index);
     int count() const { return m_items.size(); }
 
+    // Tracks the same glass-opacity slider as the editor/gutter/top bar --
+    // was never actually wired up, so the tab strip stayed a fixed opacity.
+    void setBackgroundAlpha(int alpha);
+
 signals:
     void tabActivated(int index);
     void tabCloseRequested(int index);
