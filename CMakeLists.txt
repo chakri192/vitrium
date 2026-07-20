@@ -47,3 +47,8 @@ if(APPLE)
 else()
     target_compile_definitions(Vitrum PRIVATE VITRUM_NO_MAC_VIBRANCY)
 endif()
+
+set(ICON_FILE resources/Vitrium.icns)
+set_source_files_properties(${ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+target_sources(Vitrum PRIVATE ${ICON_FILE})
+set_target_properties(Vitrum PROPERTIES MACOSX_BUNDLE_ICON_FILE Vitrium.icns)
