@@ -28,8 +28,7 @@ void TrafficDot::mousePressEvent(QMouseEvent *event) {
 
 AutoHideBar::AutoHideBar(QMainWindow *window) : QWidget(nullptr), m_window(window) {
     setMinimumHeight(0);
-    setMaximumHeight(0);
-    setFixedHeight(0);  // starts collapsed; reveal()/conceal() animate this
+    setFixedHeight(Theme::kCollapsedBarHeight);  // reserved hit zone, not fully gone
     setStyleSheet(QString(
         "background: rgba(9, 11, 12, 235); border-bottom: 1px solid rgba(%1, %2, %3, 60);")
         .arg(kAccent.red()).arg(kAccent.green()).arg(kAccent.blue()));
@@ -136,7 +135,7 @@ void AutoHideBar::conceal() {
     m_fade->start();
     m_heightAnim->stop();
     m_heightAnim->setStartValue(height());
-    m_heightAnim->setEndValue(0);
+    m_heightAnim->setEndValue(Theme::kCollapsedBarHeight);
     m_heightAnim->start();
 }
 

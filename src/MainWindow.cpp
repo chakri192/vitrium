@@ -428,6 +428,8 @@ void MainWindow::buildActions() {
     addAct("Close Tab", QKeySequence("Ctrl+W"), &MainWindow::closeCurrentTab);
     addAct("Next Tab", QKeySequence("Ctrl+Shift+]"), &MainWindow::nextTab);
     addAct("Previous Tab", QKeySequence("Ctrl+Shift+["), &MainWindow::previousTab);
+    addAct("Next Tab (Ctrl+Tab)", QKeySequence("Ctrl+Tab"), &MainWindow::nextTab);
+    addAct("Previous Tab (Ctrl+Shift+Tab)", QKeySequence("Ctrl+Shift+Tab"), &MainWindow::previousTab);
     addAct("Go to Line", QKeySequence("Ctrl+G"), &MainWindow::goToLine);
     addAct("Toggle Word Wrap", QKeySequence("Alt+Z"), &MainWindow::toggleWordWrap);
     addAct("Quit", QKeySequence::Quit, &QWidget::close);
@@ -497,7 +499,7 @@ void MainWindow::buildStatusBar() {
         "border-top: 1px solid rgba(%1, %2, %3, 40); font-size: 11px; }")
         .arg(kAccent.red()).arg(kAccent.green()).arg(kAccent.blue()));
     sb->setToolTip(QStringLiteral(
-        "\u2318O open   \u2318S save   \u2318T new tab   \u2318W close tab   "
+        "\u2318O open   \u2318S save   \u2318T new tab   \u2318W close tab   \u2325\u21e5 switch tabs   "
         "\u2318F find   \u2318G go to line   \u2325Z word wrap   "
         "[ ] glass opacity   \u2318+/- zoom   \u2318\u21e7O recent"));
     setStatusBar(sb);
