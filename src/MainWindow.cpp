@@ -243,7 +243,7 @@ bool MainWindow::saveTabAndWait(int index) {
 
     QString path = tab.path;
     if (path.isEmpty()) {
-        path = QFileDialog::getSaveFileName(this, "Save File");
+        path = promptSaveFileName(tab.highlighter->language());
         if (path.isEmpty()) return false;
     }
 
@@ -715,8 +715,26 @@ void MainWindow::saveFile() {
     saveTo(currentTab().path);
 }
 
+QString MainWindow::promptSaveFileName(const QString &language) {
+    const QString defaultExt = Highlighter::defaultExtension(language);
+
+    QFileDialog dialog(this, "Save File");
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setFileMode(QFileDialog::AnyFile);
+    // setDefaultSuffix only kicks in when the typed filename has NO
+    // extension at all -- it never overrides one the user did type, so
+    // "notes" -> "notes.py" but "notes.txt" stays "notes.txt".
+    dialog.setDefaultSuffix(defaultExt);
+    dialog.setNameFilter(QString("%1 Files (*.%2);;All Files (*)")
+        .arg(defaultExt.toUpper(), defaultExt));
+
+    if (dialog.exec() != QDialog::Accepted) return QString();
+    const QStringList selected = dialog.selectedFiles();
+    return selected.isEmpty() ? QString() : selected.first();
+}
+
 void MainWindow::saveFileAs() {
-    const QString path = QFileDialog::getSaveFileName(this, "Save File");
+    const QString path = promptSaveFileName(currentTab().highlighter->language());
     if (path.isEmpty()) return;
     saveTo(path);
 }

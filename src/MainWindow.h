@@ -89,6 +89,11 @@ private:
     void applyRoundedMask();
     void repositionFindBar();
     void saveTo(const QString &path);
+    // Save dialog with a filter list and a default suffix matching the
+    // given language, so saving a fresh file without typing an extension
+    // doesn't silently produce an extensionless file. Returns an empty
+    // string if the user cancelled.
+    QString promptSaveFileName(const QString &language);
     void openPath(const QString &path);
     int createTab(const QString &path = QString());
     void closeTabAt(int index);

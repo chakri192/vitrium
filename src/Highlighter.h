@@ -23,6 +23,10 @@ public:
     // callers (comment-toggle) may need it without an existing instance.
     static QString lineCommentPrefix(const QString &language);
 
+    // Reverse of setLanguageForPath's extension map -- the extension the
+    // save dialog should default to for a given detected language.
+    static QString defaultExtension(const QString &language);
+
 protected:
     void highlightBlock(const QString &text) override;
 
