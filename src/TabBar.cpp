@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QMouseEvent>
 #include <QCursor>
+#include <algorithm>
 
 // Internal, not exposed via the header -- one strip item: label + dirty dot
 // + close button, with its own active/inactive visual state.
@@ -90,7 +91,7 @@ private:
 
 TabBar::TabBar(QWidget *parent) : QWidget(parent) {
     setFixedHeight(Theme::kTabHeight);
-    setStyleSheet("background: rgba(9, 11, 12, 215);");
+    setBackgroundAlpha(Theme::kDefaultAlpha);
     setAttribute(Qt::WA_StyledBackground, true);
 
     m_layout = new QHBoxLayout(this);
@@ -143,4 +144,12 @@ void TabBar::removeTab(int index) {
     TabItem *item = m_items.takeAt(index);
     m_layout->removeWidget(item);
     item->deleteLater();
+}
+
+void TabBar::setBackgroundAlpha(int alpha) {
+    // Same floor+scale treatment as the gutter and top bar, so the tab
+    // strip moves together with the rest of the chrome instead of sitting
+    // at a fixed opacity while everything else changes.
+    const int barAlpha = std::clamp(alpha + 55, 90, 255);
+    setStyleSheet(QString("background: rgba(9, 11, 12, %1);").arg(barAlpha));
 }

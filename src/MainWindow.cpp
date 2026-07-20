@@ -344,6 +344,8 @@ void MainWindow::applyRoundedMask() {
 
 void MainWindow::setGlassOpacity(int alpha) {
     m_editor->setBackgroundAlpha(alpha);
+    m_topbar->setBackgroundAlpha(alpha);
+    m_tabBar->setBackgroundAlpha(alpha);
 }
 
 void MainWindow::onOpacityChanged(int alpha) {

@@ -33,6 +33,11 @@ public:
     void reveal();
     void conceal();
 
+    // Tracks the same glass-opacity slider as the editor and gutter -- this
+    // was never actually wired up before now, which is why the top bar
+    // stayed at a fixed opacity regardless of the slider.
+    void setBackgroundAlpha(int alpha);
+
 signals:
     void openRequested();
     void saveRequested();
