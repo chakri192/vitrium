@@ -33,6 +33,9 @@
 #include <QDropEvent>
 #include <QMimeData>
 #include <QUrl>
+#include <QFileSystemWatcher>
+#include <QInputDialog>
+#include <QEventLoop>
 #include <QtCore/qglobal.h>
 
 namespace {
@@ -97,13 +100,28 @@ MainWindow::MainWindow() : QMainWindow(nullptr) {
     buildActions();
     buildStatusBar();
 
+    m_fsWatcher = new QFileSystemWatcher(this);
+    connect(m_fsWatcher, &QFileSystemWatcher::fileChanged, this, &MainWindow::onFileChangedOnDisk);
+
     const int firstTab = createTab();
     switchToTab(firstTab);
 
     loadSettings();
 }
 
-MainWindow::~MainWindow() = default;
+MainWindow::~MainWindow() {
+    // A QThread must never be destroyed while still running. Both workers
+    // are normally short-lived (deleteLater on QThread::finished), but if
+    // the window is torn down while a load/save is still in flight, force
+    // it to stop and join here rather than risking a crash.
+    if (m_loadWorker) {
+        m_loadWorker->abort();
+        m_loadWorker->wait();
+    }
+    if (m_saveWorker) {
+        m_saveWorker->wait();
+    }
+}
 
 // --------------------------------------------------------------- tabs -----
 
@@ -150,8 +168,11 @@ void MainWindow::switchToTab(int index) {
     m_editor->setTextCursor(c);
 
     m_tabBar->setActiveTab(index);
+    m_editor->setReadOnly(tab.loading);
     m_langLabel->setText(tab.highlighter->language());
-    m_fileLabel->setText(tab.path.isEmpty() ? "untitled" : tab.path);
+    m_fileLabel->setText(tab.loading
+        ? QString("loading %1...").arg(QFileInfo(tab.path.isEmpty() ? m_currentLoadPath : tab.path).fileName())
+        : (tab.path.isEmpty() ? "untitled" : tab.path));
     setWindowTitle(QString("%1 \u2014 %2%3").arg(kAppName,
         tab.path.isEmpty() ? "untitled" : QFileInfo(tab.path).fileName(),
         tab.dirty ? " \u25CF" : ""));
@@ -165,16 +186,12 @@ void MainWindow::closeTabAt(int index) {
     if (index < 0 || index >= m_tabs.size()) return;
     DocumentTab &tab = m_tabs[index];
 
-    if (tab.dirty) {
-        if (m_activeTab != index) switchToTab(index);
-        const auto resp = QMessageBox::question(this, "Unsaved Changes",
-            QString("Discard unsaved changes in %1?")
-                .arg(tab.path.isEmpty() ? "untitled" : QFileInfo(tab.path).fileName()),
-            QMessageBox::Yes | QMessageBox::No);
-        if (resp != QMessageBox::Yes) return;
-    }
+    if (tab.loading) return;  // don't yank the document out from under an in-flight load
+
+    if (tab.dirty && !confirmDiscardOrSave(index, "closing")) return;
 
     const bool wasActive = (index == m_activeTab);
+    if (!tab.path.isEmpty()) unwatchPath(tab.path);
     tab.document->deleteLater();  // highlighter is parented to the document
     m_tabs.removeAt(index);
     m_tabBar->removeTab(index);
@@ -192,6 +209,77 @@ void MainWindow::closeTabAt(int index) {
     } else if (index < m_activeTab) {
         --m_activeTab;
     }
+}
+
+// Shows a Save / Discard / Cancel prompt for a dirty tab. Returns true if
+// it's now safe to proceed with whatever the caller wanted to do (close the
+// tab, close the window); false means the user cancelled.
+bool MainWindow::confirmDiscardOrSave(int index, const QString &verb) {
+    if (index < 0 || index >= m_tabs.size()) return true;
+    DocumentTab &tab = m_tabs[index];
+    if (m_activeTab != index) switchToTab(index);
+
+    QMessageBox box(this);
+    box.setIcon(QMessageBox::Warning);
+    box.setWindowTitle("Unsaved Changes");
+    box.setText(QString("Save changes to %1 before %2?")
+        .arg(tab.path.isEmpty() ? "untitled" : QFileInfo(tab.path).fileName(), verb));
+    box.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    box.setDefaultButton(QMessageBox::Save);
+    const int resp = box.exec();
+
+    if (resp == QMessageBox::Cancel) return false;
+    if (resp == QMessageBox::Save) return saveTabAndWait(index);
+    return true;  // Discard
+}
+
+// Saves a specific tab and blocks (via a nested event loop, so the UI stays
+// responsive) until it either completes or fails. Used by confirmation
+// dialogs, where the surrounding close/quit action can't proceed until the
+// save has actually finished.
+bool MainWindow::saveTabAndWait(int index) {
+    if (index < 0 || index >= m_tabs.size()) return false;
+    DocumentTab &tab = m_tabs[index];
+
+    QString path = tab.path;
+    if (path.isEmpty()) {
+        path = QFileDialog::getSaveFileName(this, "Save File");
+        if (path.isEmpty()) return false;
+    }
+
+    const QString text = (index == m_activeTab) ? m_editor->toPlainText() : tab.document->toPlainText();
+
+    FileSaveWorker worker(path, text);
+    QEventLoop loop;
+    bool ok = false;
+    QString errorMessage;
+    connect(&worker, &FileSaveWorker::finishedSaving, &loop, [&] { ok = true; loop.quit(); });
+    connect(&worker, &FileSaveWorker::failed, &loop, [&](const QString &msg) { errorMessage = msg; loop.quit(); });
+    worker.start();
+    loop.exec();
+    worker.wait();
+
+    if (!ok) {
+        QMessageBox::critical(this, "Save File Failed", errorMessage);
+        return false;
+    }
+
+    if (!tab.path.isEmpty() && tab.path != path) unwatchPath(tab.path);
+    tab.path = path;
+    tab.dirty = false;
+    m_tabBar->setTabDirty(index, false);
+    tab.highlighter->setLanguageForPath(path);
+    refreshTabLabel(index);
+    addToRecentFiles(path);
+    m_selfWritePaths.insert(path);
+    watchPath(path);
+
+    if (index == m_activeTab) {
+        m_langLabel->setText(tab.highlighter->language());
+        m_fileLabel->setText(path);
+        setWindowTitle(QString("%1 \u2014 %2").arg(kAppName, QFileInfo(path).fileName()));
+    }
+    return true;
 }
 
 void MainWindow::requestCloseTab(int index) { closeTabAt(index); }
@@ -294,6 +382,25 @@ void MainWindow::toggleMaximized() {
         showMaximized();
 }
 
+void MainWindow::goToLine() {
+    const int maxLine = qMax(1, m_editor->document()->blockCount());
+    const int currentLine = m_editor->textCursor().blockNumber() + 1;
+    bool ok = false;
+    const int line = QInputDialog::getInt(this, "Go to Line",
+        QString("Line number (1\u2013%1):").arg(maxLine), currentLine, 1, maxLine, 1, &ok);
+    if (!ok) return;
+
+    QTextCursor cursor(m_editor->document()->findBlockByNumber(line - 1));
+    m_editor->setTextCursor(cursor);
+    m_editor->centerCursor();
+    m_editor->setFocus();
+}
+
+void MainWindow::toggleWordWrap() {
+    m_wordWrap = !m_wordWrap;
+    m_editor->setLineWrapMode(m_wordWrap ? QPlainTextEdit::WidgetWidth : QPlainTextEdit::NoWrap);
+}
+
 // --------------------------------------------------------- drag and drop --
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
@@ -321,6 +428,8 @@ void MainWindow::buildActions() {
     addAct("Close Tab", QKeySequence("Ctrl+W"), &MainWindow::closeCurrentTab);
     addAct("Next Tab", QKeySequence("Ctrl+Shift+]"), &MainWindow::nextTab);
     addAct("Previous Tab", QKeySequence("Ctrl+Shift+["), &MainWindow::previousTab);
+    addAct("Go to Line", QKeySequence("Ctrl+G"), &MainWindow::goToLine);
+    addAct("Toggle Word Wrap", QKeySequence("Alt+Z"), &MainWindow::toggleWordWrap);
     addAct("Quit", QKeySequence::Quit, &QWidget::close);
 
     // Glass opacity lives on bracket keys -- Ctrl+=/Ctrl+- are freed up for
@@ -389,7 +498,8 @@ void MainWindow::buildStatusBar() {
         .arg(kAccent.red()).arg(kAccent.green()).arg(kAccent.blue()));
     sb->setToolTip(QStringLiteral(
         "\u2318O open   \u2318S save   \u2318T new tab   \u2318W close tab   "
-        "\u2318F find   [ ] glass opacity   \u2318+/- zoom   \u2318\u21e7O recent"));
+        "\u2318F find   \u2318G go to line   \u2325Z word wrap   "
+        "[ ] glass opacity   \u2318+/- zoom   \u2318\u21e7O recent"));
     setStatusBar(sb);
     m_posLabel = new QLabel("Ln 1, Col 1", this);
     m_langLabel = new QLabel("plain", this);
@@ -423,17 +533,60 @@ void MainWindow::openFile() {
     loadFile(path);
 }
 
+int MainWindow::findTabForPath(const QString &path) const {
+    const QFileInfo target(path);
+    const QString targetKey = target.exists() ? target.canonicalFilePath() : target.absoluteFilePath();
+    for (int i = 0; i < m_tabs.size(); ++i) {
+        const QString &tabPath = m_tabs[i].path;
+        if (tabPath.isEmpty()) continue;
+        const QFileInfo tabInfo(tabPath);
+        const QString tabKey = tabInfo.exists() ? tabInfo.canonicalFilePath() : tabInfo.absoluteFilePath();
+        if (tabKey == targetKey) return i;
+    }
+    return -1;
+}
+
 void MainWindow::loadFile(const QString &path) {
-    const bool reuse = m_activeTab >= 0 && currentTab().path.isEmpty() &&
-                        !currentTab().dirty && m_editor->document()->isEmpty();
-    if (!reuse) switchToTab(createTab());
+    const int existing = findTabForPath(path);
+    if (existing >= 0 && !m_tabs[existing].loading) {
+        switchToTab(existing);
+        return;
+    }
 
-    m_pendingLoadPath = path;
+    m_loadQueue.enqueue({path, -1});
+    if (!m_loadWorker) startNextLoad();
+}
+
+void MainWindow::startNextLoad() {
+    if (m_loadQueue.isEmpty()) return;
+    const QueuedLoad q = m_loadQueue.dequeue();
+
+    int tabIndex = q.tabIndex;
+    if (tabIndex < 0) {
+        // Decide reuse-vs-new-tab *now*, using the true current state --
+        // deciding this back when loadFile() was first called (as the
+        // original code did) breaks as soon as more than one load is
+        // queued, since the earlier loads haven't landed yet.
+        const bool reuse = m_activeTab >= 0 && m_tabs[m_activeTab].path.isEmpty() &&
+                            !m_tabs[m_activeTab].dirty && !m_tabs[m_activeTab].loading &&
+                            m_tabs[m_activeTab].document->isEmpty();
+        m_currentLoadCreatedTab = !reuse;
+        tabIndex = reuse ? m_activeTab : createTab();
+    } else {
+        m_currentLoadCreatedTab = false;
+    }
+
+    switchToTab(tabIndex);
+    m_currentLoadTabIndex = tabIndex;
+    m_currentLoadPath = q.path;
+
+    DocumentTab &tab = m_tabs[tabIndex];
+    tab.loading = true;
+    tab.document->clear();
     m_editor->setReadOnly(true);
-    m_editor->clear();
-    m_fileLabel->setText(QString("loading %1...").arg(QFileInfo(path).fileName()));
+    m_fileLabel->setText(QString("loading %1...").arg(QFileInfo(q.path).fileName()));
 
-    m_loadWorker = new FileLoadWorker(path, this);
+    m_loadWorker = new FileLoadWorker(q.path, this);
     connect(m_loadWorker, &FileLoadWorker::chunkReady, this, &MainWindow::appendChunk);
     connect(m_loadWorker, &FileLoadWorker::finishedLoading, this, &MainWindow::finishLoad);
     connect(m_loadWorker, &FileLoadWorker::failed, this, &MainWindow::loadFailed);
@@ -442,28 +595,58 @@ void MainWindow::loadFile(const QString &path) {
 }
 
 void MainWindow::appendChunk(const QString &chunk) {
-    QTextCursor cursor = m_editor->textCursor();
+    if (m_currentLoadTabIndex < 0 || m_currentLoadTabIndex >= m_tabs.size()) return;
+    // Written straight into the loading tab's own document, never through
+    // m_editor -- if the user switches tabs mid-load, m_editor now shows a
+    // *different* document, and appending through it would splice this
+    // file's contents into whatever tab happens to be visible.
+    QTextCursor cursor(m_tabs[m_currentLoadTabIndex].document);
     cursor.movePosition(QTextCursor::End);
     cursor.insertText(chunk);
 }
 
 void MainWindow::finishLoad() {
-    m_editor->setReadOnly(false);
-    currentTab().path = m_pendingLoadPath;
-    currentTab().dirty = false;
-    m_editor->ensureTextVisible();
-    currentTab().highlighter->setLanguageForPath(m_pendingLoadPath);
-    m_langLabel->setText(currentTab().highlighter->language());
-    m_fileLabel->setText(m_pendingLoadPath);
-    setWindowTitle(QString("%1 \u2014 %2").arg(kAppName, QFileInfo(m_pendingLoadPath).fileName()));
-    refreshTabLabel(m_activeTab);
-    m_tabBar->setTabDirty(m_activeTab, false);
-    addToRecentFiles(m_pendingLoadPath);
+    m_loadWorker = nullptr;
+    if (m_currentLoadTabIndex < 0 || m_currentLoadTabIndex >= m_tabs.size()) { startNextLoad(); return; }
+
+    const int index = m_currentLoadTabIndex;
+    DocumentTab &tab = m_tabs[index];
+    tab.loading = false;
+    tab.path = m_currentLoadPath;
+    tab.dirty = false;
+    tab.highlighter->setLanguageForPath(m_currentLoadPath);
+    refreshTabLabel(index);
+    m_tabBar->setTabDirty(index, false);
+    addToRecentFiles(m_currentLoadPath);
+    watchPath(m_currentLoadPath);
+
+    if (index == m_activeTab) {
+        m_editor->setReadOnly(false);
+        m_editor->ensureTextVisible();
+        m_langLabel->setText(tab.highlighter->language());
+        m_fileLabel->setText(tab.path);
+        setWindowTitle(QString("%1 \u2014 %2").arg(kAppName, QFileInfo(tab.path).fileName()));
+    }
+
+    startNextLoad();
 }
 
 void MainWindow::loadFailed(const QString &message) {
-    m_editor->setReadOnly(false);
+    m_loadWorker = nullptr;
+    if (m_currentLoadTabIndex >= 0 && m_currentLoadTabIndex < m_tabs.size()) {
+        DocumentTab &tab = m_tabs[m_currentLoadTabIndex];
+        tab.loading = false;
+        if (m_currentLoadTabIndex == m_activeTab) {
+            m_editor->setReadOnly(false);
+            m_fileLabel->setText(tab.path.isEmpty() ? "untitled" : tab.path);
+        }
+        // A tab created purely to hold this failed load would otherwise
+        // sit around as a dead "untitled" tab the user never asked for.
+        if (m_currentLoadCreatedTab && m_tabs.size() > 1)
+            closeTabAt(m_currentLoadTabIndex);
+    }
     QMessageBox::critical(this, "Open File Failed", message);
+    startNextLoad();
 }
 
 void MainWindow::saveFile() {
@@ -481,10 +664,16 @@ void MainWindow::saveFileAs() {
 }
 
 void MainWindow::saveTo(const QString &path) {
+    if (m_saveWorker) {
+        // A save is already running (e.g. user mashed Ctrl+S) -- let it
+        // finish rather than racing two writers against the same file.
+        return;
+    }
     m_saveWorker = new FileSaveWorker(path, m_editor->toPlainText(), this);
     connect(m_saveWorker, &FileSaveWorker::finishedSaving, this,
-            [this, path] { finishSave(path); });
+            [this, path] { m_saveWorker = nullptr; finishSave(path); });
     connect(m_saveWorker, &FileSaveWorker::failed, this, [this](const QString &msg) {
+        m_saveWorker = nullptr;
         QMessageBox::critical(this, "Save File Failed", msg);
     });
     connect(m_saveWorker, &QThread::finished, m_saveWorker, &QObject::deleteLater);
@@ -492,6 +681,7 @@ void MainWindow::saveTo(const QString &path) {
 }
 
 void MainWindow::finishSave(const QString &path) {
+    if (!currentTab().path.isEmpty() && currentTab().path != path) unwatchPath(currentTab().path);
     currentTab().path = path;
     currentTab().dirty = false;
     m_tabBar->setTabDirty(m_activeTab, false);
@@ -501,6 +691,59 @@ void MainWindow::finishSave(const QString &path) {
     setWindowTitle(QString("%1 \u2014 %2").arg(kAppName, QFileInfo(path).fileName()));
     refreshTabLabel(m_activeTab);
     addToRecentFiles(path);
+    m_selfWritePaths.insert(path);
+    watchPath(path);
+}
+
+// ------------------------------------------------------ external changes --
+
+void MainWindow::watchPath(const QString &path) {
+    if (path.isEmpty() || !m_fsWatcher) return;
+    if (!m_fsWatcher->files().contains(path)) m_fsWatcher->addPath(path);
+}
+
+void MainWindow::unwatchPath(const QString &path) {
+    if (path.isEmpty() || !m_fsWatcher) return;
+    m_fsWatcher->removePath(path);
+    m_selfWritePaths.remove(path);
+}
+
+void MainWindow::onFileChangedOnDisk(const QString &path) {
+    // A save we just performed ourselves also fires this signal (the
+    // underlying inode changes on the atomic rename QSaveFile does) --
+    // that's not an external edit, so swallow exactly one notification per
+    // save rather than asking "reload?" about our own write.
+    if (m_selfWritePaths.remove(path)) return;
+
+    const int index = findTabForPath(path);
+    if (index < 0) return;
+
+    // Editors like this commonly lose the OS-level watch after an atomic
+    // replace (the watched inode is gone). Re-arm it if the file still
+    // exists so future external edits keep being caught.
+    if (QFileInfo::exists(path)) watchPath(path);
+
+    DocumentTab &tab = m_tabs[index];
+    if (tab.loading) return;
+
+    if (tab.dirty) {
+        // Don't clobber unsaved local edits with a surprise reload -- just
+        // let the user know, non-intrusively, next time they look at it.
+        if (index == m_activeTab) m_fileLabel->setText(tab.path + "  (modified on disk)");
+        return;
+    }
+
+    if (m_activeTab != index) switchToTab(index);
+    const auto resp = QMessageBox::question(this, "File Changed on Disk",
+        QString("%1 was changed by another program. Reload it?").arg(QFileInfo(path).fileName()),
+        QMessageBox::Yes | QMessageBox::No);
+    if (resp == QMessageBox::Yes) reloadTab(index);
+}
+
+void MainWindow::reloadTab(int index) {
+    if (index < 0 || index >= m_tabs.size() || m_tabs[index].loading) return;
+    m_loadQueue.enqueue({m_tabs[index].path, index});
+    if (!m_loadWorker) startNextLoad();
 }
 
 // -------------------------------------------------------------- settings --
@@ -516,6 +759,17 @@ void MainWindow::loadSettings() {
     if (settings.contains("geometry")) restoreGeometry(settings.value("geometry").toByteArray());
     m_recentFiles = settings.value("recentFiles").toStringList();
     setGlassOpacity(settings.value("glassAlpha", Theme::kDefaultAlpha).toInt());
+
+    m_wordWrap = settings.value("wordWrap", false).toBool();
+    m_editor->setLineWrapMode(m_wordWrap ? QPlainTextEdit::WidgetWidth : QPlainTextEdit::NoWrap);
+
+    // Reopen whatever was on-screen last time. Missing/deleted files are
+    // silently skipped rather than surfacing an error dialog on every
+    // startup for a file the user may have intentionally removed.
+    const QStringList sessionFiles = settings.value("sessionFiles").toStringList();
+    for (const QString &path : sessionFiles) {
+        if (QFileInfo::exists(path)) loadFile(path);
+    }
 }
 
 void MainWindow::saveSettings() {
@@ -523,21 +777,30 @@ void MainWindow::saveSettings() {
     settings.setValue("geometry", saveGeometry());
     settings.setValue("recentFiles", m_recentFiles);
     settings.setValue("glassAlpha", m_editor->backgroundAlpha());
+    settings.setValue("wordWrap", m_wordWrap);
+
+    QStringList sessionFiles;
+    for (const auto &tab : m_tabs)
+        if (!tab.path.isEmpty()) sessionFiles.append(tab.path);
+    settings.setValue("sessionFiles", sessionFiles);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
-    for (const auto &tab : m_tabs) {
-        if (tab.dirty) {
-            const auto resp = QMessageBox::question(this, "Unsaved Changes",
-                                                      "You have unsaved changes. Discard and quit?",
-                                                      QMessageBox::Yes | QMessageBox::No);
-            if (resp != QMessageBox::Yes) {
-                event->ignore();
-                return;
-            }
-            break;
+    if (m_currentLoadTabIndex >= 0 && m_loadWorker) {
+        const auto resp = QMessageBox::question(this, "File Still Loading",
+            "A file is still being opened. Quit anyway and cancel the load?",
+            QMessageBox::Yes | QMessageBox::No);
+        if (resp != QMessageBox::Yes) { event->ignore(); return; }
+    }
+
+    for (int i = 0; i < m_tabs.size(); ++i) {
+        if (!m_tabs[i].dirty) continue;
+        if (!confirmDiscardOrSave(i, "quitting")) {
+            event->ignore();
+            return;
         }
     }
+
     saveSettings();
     event->accept();
 }
