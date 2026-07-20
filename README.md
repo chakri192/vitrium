@@ -2,7 +2,12 @@
 
 A native, lightweight desktop text editor with a translucent glass look, built in C++ and Qt6 for macOS. No Electron, no WebView, no HTML/CSS anywhere in the stack — on macOS the blur is a real `NSVisualEffectView` reached through Objective-C++, not a CSS `backdrop-filter` fake.
 
+<div align="center">
+  <img src="docs/screenshot.png" alt="Vitrium" width="600" />
+</div>
+
 ---
+
 
 ## Features
 
