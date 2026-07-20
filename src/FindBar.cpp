@@ -4,6 +4,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QPushButton>
+#include <QCheckBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QPlainTextEdit>
@@ -52,6 +53,20 @@ void FindBar::buildContents() {
     connect(m_replaceToggleBtn, &QPushButton::clicked, this, &FindBar::toggleReplaceRow);
     searchRow->addWidget(m_replaceToggleBtn);
 
+    const QString checkboxStyle =
+        "QCheckBox { color: #C9D6CE; font-size: 11px; background: transparent; }";
+    m_caseSensitiveBox = new QCheckBox("Aa", this);
+    m_caseSensitiveBox->setToolTip("Case sensitive");
+    m_caseSensitiveBox->setStyleSheet(checkboxStyle);
+    connect(m_caseSensitiveBox, &QCheckBox::toggled, this, &FindBar::onQueryChanged);
+    searchRow->addWidget(m_caseSensitiveBox);
+
+    m_wholeWordBox = new QCheckBox("W", this);
+    m_wholeWordBox->setToolTip("Whole word");
+    m_wholeWordBox->setStyleSheet(checkboxStyle);
+    connect(m_wholeWordBox, &QCheckBox::toggled, this, &FindBar::onQueryChanged);
+    searchRow->addWidget(m_wholeWordBox);
+
     m_statusLabel = new QLabel(this);
     m_statusLabel->setStyleSheet("color: #7C8A82; font-size: 11px; background: transparent;");
     searchRow->addWidget(m_statusLabel);
@@ -85,7 +100,7 @@ void FindBar::buildContents() {
     m_replaceRow->hide();
 
     connect(m_searchField, &QLineEdit::textChanged, this, [this](const QString &) {
-        m_statusLabel->clear();
+        onQueryChanged();
     });
 }
 
@@ -123,18 +138,66 @@ void FindBar::keyPressEvent(QKeyEvent *event) {
 }
 
 void FindBar::updateStatus(bool found) {
-    m_statusLabel->setText(found ? QString() : "no matches");
+    if (!found) {
+        m_statusLabel->setText("no matches");
+        return;
+    }
+    updateMatchCount();
+}
+
+QTextDocument::FindFlags FindBar::currentFlags(bool backward) const {
+    QTextDocument::FindFlags flags;
+    if (backward) flags |= QTextDocument::FindBackward;
+    if (m_caseSensitiveBox->isChecked()) flags |= QTextDocument::FindCaseSensitively;
+    if (m_wholeWordBox->isChecked()) flags |= QTextDocument::FindWholeWords;
+    return flags;
+}
+
+void FindBar::onQueryChanged() {
+    updateMatchCount();
+}
+
+void FindBar::updateMatchCount() {
+    const QString text = m_searchField->text();
+    if (text.isEmpty()) {
+        m_statusLabel->clear();
+        return;
+    }
+
+    // Count total matches and where the current cursor sits among them.
+    // Cheap enough for interactive typing since it's a single linear scan
+    // of the document per keystroke, same cost class as syntax highlighting
+    // already pays on every edit.
+    QTextCursor scan(m_target->document());
+    scan.movePosition(QTextCursor::Start);
+    int total = 0;
+    int currentIndex = -1;
+    const int cursorPos = m_target->textCursor().selectionStart();
+    while (true) {
+        scan = m_target->document()->find(text, scan, currentFlags(false));
+        if (scan.isNull()) break;
+        ++total;
+        if (currentIndex < 0 && scan.selectionEnd() >= cursorPos) currentIndex = total;
+    }
+
+    if (total == 0) {
+        m_statusLabel->setText("no matches");
+    } else if (currentIndex < 0) {
+        m_statusLabel->setText(QString("%1 matches").arg(total));
+    } else {
+        m_statusLabel->setText(QString("%1 of %2").arg(currentIndex).arg(total));
+    }
 }
 
 void FindBar::findNext() {
     const QString text = m_searchField->text();
     if (text.isEmpty()) return;
-    bool found = m_target->find(text);
+    bool found = m_target->find(text, currentFlags(false));
     if (!found) {
         QTextCursor c = m_target->textCursor();
         c.movePosition(QTextCursor::Start);
         m_target->setTextCursor(c);
-        found = m_target->find(text);
+        found = m_target->find(text, currentFlags(false));
     }
     updateStatus(found);
 }
@@ -142,12 +205,12 @@ void FindBar::findNext() {
 void FindBar::findPrev() {
     const QString text = m_searchField->text();
     if (text.isEmpty()) return;
-    bool found = m_target->find(text, QTextDocument::FindBackward);
+    bool found = m_target->find(text, currentFlags(true));
     if (!found) {
         QTextCursor c = m_target->textCursor();
         c.movePosition(QTextCursor::End);
         m_target->setTextCursor(c);
-        found = m_target->find(text, QTextDocument::FindBackward);
+        found = m_target->find(text, currentFlags(true));
     }
     updateStatus(found);
 }
@@ -156,7 +219,9 @@ void FindBar::doReplace() {
     const QString text = m_searchField->text();
     if (text.isEmpty()) return;
     QTextCursor c = m_target->textCursor();
-    if (c.hasSelection() && c.selectedText() == text) {
+    const Qt::CaseSensitivity cs =
+        m_caseSensitiveBox->isChecked() ? Qt::CaseSensitive : Qt::CaseInsensitive;
+    if (c.hasSelection() && c.selectedText().compare(text, cs) == 0) {
         c.insertText(m_replaceField->text());
         m_target->setTextCursor(c);
     }
@@ -172,12 +237,19 @@ void FindBar::doReplaceAll() {
     cursor.movePosition(QTextCursor::Start);
     m_target->setTextCursor(cursor);
 
+    // One undo step for the whole operation instead of one per replacement
+    // -- otherwise Ctrl+Z after a large "replace all" makes the user hit
+    // undo hundreds of times to get back to where they started.
+    cursor.beginEditBlock();
     int count = 0;
-    while (m_target->find(text)) {
+    while (true) {
+        const bool found = m_target->find(text, currentFlags(false));
+        if (!found) break;
         QTextCursor c = m_target->textCursor();
         c.insertText(replacement);
         m_target->setTextCursor(c);
         ++count;
     }
+    cursor.endEditBlock();
     m_statusLabel->setText(count > 0 ? QString("%1 replaced").arg(count) : "no matches");
 }

@@ -3,7 +3,11 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QVector>
+#include <QQueue>
+#include <QSet>
 #include <QString>
+
+class QFileSystemWatcher;
 
 class Editor;
 class Highlighter;
@@ -46,6 +50,8 @@ public slots:
     void toggleMaximized();
     void cancelBarHide();
     void scheduleBarHide();
+    void goToLine();
+    void toggleWordWrap();
 
 private slots:
     void onOpacityChanged(int alpha);
@@ -59,6 +65,8 @@ private slots:
     void updatePositionLabel();
     void activateTab(int index);
     void requestCloseTab(int index);
+    void startNextLoad();
+    void onFileChangedOnDisk(const QString &path);
 
 private:
     struct DocumentTab {
@@ -66,6 +74,7 @@ private:
         QTextDocument *document = nullptr;
         Highlighter *highlighter = nullptr;
         bool dirty = false;
+        bool loading = false;
         int savedCursorPos = 0;
     };
 
@@ -83,6 +92,16 @@ private:
     void loadSettings();
     void saveSettings();
     DocumentTab &currentTab();
+    int findTabForPath(const QString &path) const;
+    // Synchronously (from the caller's point of view -- runs its own nested
+    // event loop) saves a single tab. Used by the close-tab/quit confirmation
+    // flows, where "Save" has to complete before the tab/window is allowed
+    // to actually close.
+    bool saveTabAndWait(int index);
+    bool confirmDiscardOrSave(int index, const QString &verb);
+    void watchPath(const QString &path);
+    void unwatchPath(const QString &path);
+    void reloadTab(int index);
 
     Editor *m_editor;
     AutoHideBar *m_topbar;
@@ -98,9 +117,27 @@ private:
     QVector<DocumentTab> m_tabs;
     int m_activeTab = -1;
     QStringList m_recentFiles;
-    QString m_pendingLoadPath;
+
+    // Loads are always run one-at-a-time (see startNextLoad()): the
+    // currently-loading tab's index/path, plus everything still queued
+    // behind it (from a multi-file drag-drop, multiple CLI args, or a
+    // session restore). appendChunk() writes directly into
+    // m_tabs[m_currentLoadTabIndex].document rather than into whatever
+    // m_editor happens to be showing right now, so switching tabs mid-load
+    // can't splice one file's contents into another's.
+    struct QueuedLoad {
+        QString path;
+        int tabIndex;  // -1 = decide reuse-vs-new-tab when this load actually starts
+    };
+    QQueue<QueuedLoad> m_loadQueue;
+    int m_currentLoadTabIndex = -1;
+    QString m_currentLoadPath;
+    bool m_currentLoadCreatedTab = false;
 
     FileLoadWorker *m_loadWorker = nullptr;
     FileSaveWorker *m_saveWorker = nullptr;
+    QFileSystemWatcher *m_fsWatcher = nullptr;
+    QSet<QString> m_selfWritePaths;
+    bool m_wordWrap = false;
     void *m_effectView = nullptr;  // opaque NSVisualEffectView*, macOS only
 };

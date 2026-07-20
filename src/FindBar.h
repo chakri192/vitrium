@@ -1,11 +1,13 @@
 #pragma once
 
 #include <QWidget>
+#include <QTextDocument>
 
 class QLineEdit;
 class QLabel;
 class QPlainTextEdit;
 class QPushButton;
+class QCheckBox;
 class QKeyEvent;
 
 // Self-contained find/replace overlay: owns its own search logic against a
@@ -31,10 +33,13 @@ private slots:
     void doReplace();
     void doReplaceAll();
     void toggleReplaceRow();
+    void onQueryChanged();
 
 private:
     void updateStatus(bool found);
+    void updateMatchCount();
     void buildContents();
+    QTextDocument::FindFlags currentFlags(bool backward) const;
 
     QPlainTextEdit *m_target;
     QLineEdit *m_searchField;
@@ -42,4 +47,6 @@ private:
     QWidget *m_replaceRow;
     QLabel *m_statusLabel;
     QPushButton *m_replaceToggleBtn;
+    QCheckBox *m_caseSensitiveBox;
+    QCheckBox *m_wholeWordBox;
 };
