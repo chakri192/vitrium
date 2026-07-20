@@ -472,7 +472,7 @@ void MainWindow::buildActions() {
     addAct("Next Tab (Ctrl+Tab)", QKeySequence(physicalCtrl | Qt::Key_Tab), &MainWindow::nextTab);
     addAct("Previous Tab (Ctrl+Shift+Tab)",
            QKeySequence(physicalCtrl | Qt::ShiftModifier | Qt::Key_Tab), &MainWindow::previousTab);
-    addAct("Go to Line", QKeySequence("Ctrl+G"), &MainWindow::goToLine);
+    addAct("Go to Line", QKeySequence("Ctrl+L"), &MainWindow::goToLine);
     addAct("Toggle Word Wrap", QKeySequence("Alt+Z"), &MainWindow::toggleWordWrap);
     addAct("Toggle Comment", QKeySequence("Ctrl+/"), &MainWindow::toggleComment);
     addAct("Duplicate Line", QKeySequence("Ctrl+D"), &MainWindow::duplicateLine);
@@ -548,7 +548,7 @@ void MainWindow::buildStatusBar() {
         .arg(kAccent.red()).arg(kAccent.green()).arg(kAccent.blue()));
     sb->setToolTip(QStringLiteral(
         "\u2318O open   \u2318S save   \u2318T new tab   \u2318W close tab   \u2325\u21e5 switch tabs   "
-        "\u2318F find   \u2318G go to line   \u2325Z word wrap   \u2318/ comment   "
+        "\u2318F find   \u2318L go to line   \u2325Z word wrap   \u2318/ comment   "
         "\u2318D duplicate line   \u2325\u2191/\u2193 move line   "
         "[ ] glass opacity   \u2318+/- zoom   \u2318\u21e7O recent"));
     setStatusBar(sb);
