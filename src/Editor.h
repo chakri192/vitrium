@@ -69,6 +69,18 @@ public:
     void zoomTextIn();
     void zoomTextOut();
     void resetTextZoom();
+    int zoomLevel() const { return m_zoomLevel; }
+    void setZoomLevel(int level);
+
+    // Comment/uncomment every line touched by the current selection (or just
+    // the current line, if there's no selection) using the given language's
+    // line-comment prefix. No-op if the language has none (e.g. JSON).
+    void toggleLineComment(const QString &prefix);
+
+    void duplicateLine();
+    void moveLineUp();
+    void moveLineDown();
+    void indentSelection(bool outdent);
 
     // Re-binds the explicit bright text color across the whole document.
     // Call after bulk content changes (e.g. finishing a chunked file load)
@@ -103,6 +115,7 @@ private slots:
 private:
     void applyPalette();
     void applyBaseTextFormat();
+    void updateBracketMatch();
 
     LineNumberArea *m_gutter;
     CursorGlow *m_cursorGlow;

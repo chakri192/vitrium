@@ -18,6 +18,11 @@ public:
     void setLanguage(const QString &language);
     QString language() const { return m_language; }
 
+    // Line-comment prefix for the given language, or empty if that language
+    // has no single-line comment syntax (JSON, plain text). Static because
+    // callers (comment-toggle) may need it without an existing instance.
+    static QString lineCommentPrefix(const QString &language);
+
 protected:
     void highlightBlock(const QString &text) override;
 

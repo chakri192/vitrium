@@ -17,7 +17,7 @@ A modern, native C++/Qt6 text editor featuring a custom glass aesthetic, uniform
 
 ## Requirements
 
-- macOS, Linux, or Windows
+- macOS
 - **C++17** compatible compiler
 - **Qt6** (Core, Gui, Widgets)
 - **CMake** (3.16+)
@@ -47,9 +47,6 @@ cmake --build . -j$(nproc)
 ```bash
 # macOS
 ./Vitrium.app/Contents/MacOS/Vitrium
-
-# Linux/Windows
-./vitrium
 ```
 
 ---

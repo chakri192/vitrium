@@ -52,6 +52,12 @@ public slots:
     void scheduleBarHide();
     void goToLine();
     void toggleWordWrap();
+    void toggleComment();
+    void duplicateLine();
+    void moveLineUp();
+    void moveLineDown();
+    void closeOtherTabs();
+    void closeAllTabs();
 
 private slots:
     void onOpacityChanged(int alpha);
