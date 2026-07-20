@@ -401,6 +401,34 @@ void MainWindow::toggleWordWrap() {
     m_editor->setLineWrapMode(m_wordWrap ? QPlainTextEdit::WidgetWidth : QPlainTextEdit::NoWrap);
 }
 
+void MainWindow::toggleComment() {
+    if (m_activeTab < 0) return;
+    m_editor->toggleLineComment(Highlighter::lineCommentPrefix(currentTab().highlighter->language()));
+}
+
+void MainWindow::duplicateLine() { m_editor->duplicateLine(); }
+void MainWindow::moveLineUp() { m_editor->moveLineUp(); }
+void MainWindow::moveLineDown() { m_editor->moveLineDown(); }
+
+void MainWindow::closeOtherTabs() {
+    // Iterate from the end backwards: closeTabAt() already adjusts
+    // m_activeTab correctly as tabs before it disappear, and processing
+    // high-to-low means indices we haven't gotten to yet never shift under us.
+    for (int i = m_tabs.size() - 1; i >= 0; --i) {
+        if (i == m_activeTab) continue;
+        closeTabAt(i);
+    }
+}
+
+void MainWindow::closeAllTabs() {
+    // closeTabAt() refuses to ever leave zero tabs (it recreates a fresh
+    // untitled one when the last one closes), so this naturally converges
+    // on exactly one empty untitled tab -- including running the same
+    // dirty-tab confirmation flow for every tab along the way.
+    while (m_tabs.size() > 1) closeTabAt(0);
+    closeTabAt(0);
+}
+
 // --------------------------------------------------------- drag and drop --
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
@@ -428,10 +456,28 @@ void MainWindow::buildActions() {
     addAct("Close Tab", QKeySequence("Ctrl+W"), &MainWindow::closeCurrentTab);
     addAct("Next Tab", QKeySequence("Ctrl+Shift+]"), &MainWindow::nextTab);
     addAct("Previous Tab", QKeySequence("Ctrl+Shift+["), &MainWindow::previousTab);
-    addAct("Next Tab (Ctrl+Tab)", QKeySequence("Ctrl+Tab"), &MainWindow::nextTab);
-    addAct("Previous Tab (Ctrl+Shift+Tab)", QKeySequence("Ctrl+Shift+Tab"), &MainWindow::previousTab);
+#ifdef Q_OS_MACOS
+    // Qt intentionally swaps these on macOS: Qt::ControlModifier means the
+    // physical Cmd key, Qt::MetaModifier means the physical Control key.
+    // The standard macOS convention for in-window tab switching (Safari,
+    // Chrome, Xcode, Terminal) is physical Ctrl+Tab -- using the "Ctrl+Tab"
+    // string form here would silently bind to Cmd+Tab instead, which the OS
+    // intercepts globally for Application Switcher before Qt ever sees it.
+    const auto physicalCtrl = Qt::MetaModifier;
+#else
+    const auto physicalCtrl = Qt::ControlModifier;
+#endif
+    addAct("Next Tab (Ctrl+Tab)", QKeySequence(physicalCtrl | Qt::Key_Tab), &MainWindow::nextTab);
+    addAct("Previous Tab (Ctrl+Shift+Tab)",
+           QKeySequence(physicalCtrl | Qt::ShiftModifier | Qt::Key_Tab), &MainWindow::previousTab);
     addAct("Go to Line", QKeySequence("Ctrl+G"), &MainWindow::goToLine);
     addAct("Toggle Word Wrap", QKeySequence("Alt+Z"), &MainWindow::toggleWordWrap);
+    addAct("Toggle Comment", QKeySequence("Ctrl+/"), &MainWindow::toggleComment);
+    addAct("Duplicate Line", QKeySequence("Ctrl+D"), &MainWindow::duplicateLine);
+    addAct("Move Line Up", QKeySequence("Alt+Up"), &MainWindow::moveLineUp);
+    addAct("Move Line Down", QKeySequence("Alt+Down"), &MainWindow::moveLineDown);
+    addAct("Close Other Tabs", QKeySequence("Ctrl+Alt+W"), &MainWindow::closeOtherTabs);
+    addAct("Close All Tabs", QKeySequence("Ctrl+Alt+Shift+W"), &MainWindow::closeAllTabs);
     addAct("Quit", QKeySequence::Quit, &QWidget::close);
 
     // Glass opacity lives on bracket keys -- Ctrl+=/Ctrl+- are freed up for
@@ -500,7 +546,8 @@ void MainWindow::buildStatusBar() {
         .arg(kAccent.red()).arg(kAccent.green()).arg(kAccent.blue()));
     sb->setToolTip(QStringLiteral(
         "\u2318O open   \u2318S save   \u2318T new tab   \u2318W close tab   \u2325\u21e5 switch tabs   "
-        "\u2318F find   \u2318G go to line   \u2325Z word wrap   "
+        "\u2318F find   \u2318G go to line   \u2325Z word wrap   \u2318/ comment   "
+        "\u2318D duplicate line   \u2325\u2191/\u2193 move line   "
         "[ ] glass opacity   \u2318+/- zoom   \u2318\u21e7O recent"));
     setStatusBar(sb);
     m_posLabel = new QLabel("Ln 1, Col 1", this);
@@ -513,9 +560,18 @@ void MainWindow::buildStatusBar() {
 
 void MainWindow::updatePositionLabel() {
     const QTextCursor cursor = m_editor->textCursor();
-    m_posLabel->setText(QString("Ln %1, Col %2")
+    QString text = QString("Ln %1, Col %2")
         .arg(cursor.blockNumber() + 1)
-        .arg(cursor.positionInBlock() + 1));
+        .arg(cursor.positionInBlock() + 1);
+    if (cursor.hasSelection()) {
+        const int chars = cursor.selectionEnd() - cursor.selectionStart();
+        // QTextCursor::selectedText() uses U+2029 (paragraph separator) for
+        // line breaks within a selection, not '\n'.
+        const int lines = cursor.selectedText().count(QChar(0x2029)) + 1;
+        text += lines > 1 ? QString("  (%1 selected, %2 lines)").arg(chars).arg(lines)
+                           : QString("  (%1 selected)").arg(chars);
+    }
+    m_posLabel->setText(text);
 }
 
 void MainWindow::markDirty() {
@@ -764,6 +820,7 @@ void MainWindow::loadSettings() {
 
     m_wordWrap = settings.value("wordWrap", false).toBool();
     m_editor->setLineWrapMode(m_wordWrap ? QPlainTextEdit::WidgetWidth : QPlainTextEdit::NoWrap);
+    m_editor->setZoomLevel(settings.value("zoomLevel", 0).toInt());
 
     // Reopen whatever was on-screen last time. Missing/deleted files are
     // silently skipped rather than surfacing an error dialog on every
@@ -780,6 +837,7 @@ void MainWindow::saveSettings() {
     settings.setValue("recentFiles", m_recentFiles);
     settings.setValue("glassAlpha", m_editor->backgroundAlpha());
     settings.setValue("wordWrap", m_wordWrap);
+    settings.setValue("zoomLevel", m_editor->zoomLevel());
 
     QStringList sessionFiles;
     for (const auto &tab : m_tabs)
