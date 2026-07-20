@@ -63,6 +63,17 @@ QString Highlighter::lineCommentPrefix(const QString &language) {
     return QString();  // json, markdown, plain -- no single-line comment syntax
 }
 
+QString Highlighter::defaultExtension(const QString &language) {
+    if (language == "python") return "py";
+    if (language == "c") return "c";
+    if (language == "javascript") return "js";
+    if (language == "shell") return "sh";
+    if (language == "yaml") return "yaml";
+    if (language == "json") return "json";
+    if (language == "markdown") return "md";
+    return "txt";  // plain, or anything unrecognized
+}
+
 Highlighter::Highlighter(QTextDocument *document) : QSyntaxHighlighter(document) {
     setLanguage("plain");
 }
