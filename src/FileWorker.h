@@ -3,6 +3,8 @@
 #include <QThread>
 #include <QString>
 
+#include <atomic>
+
 class FileLoadWorker : public QThread {
     Q_OBJECT
 
@@ -20,7 +22,7 @@ protected:
 
 private:
     QString m_path;
-    volatile bool m_abort = false;
+    std::atomic<bool> m_abort{false};
 };
 
 class FileSaveWorker : public QThread {
