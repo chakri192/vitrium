@@ -120,7 +120,7 @@ void Highlighter::setLanguage(const QString &language) {
         m_rules.append({QRegularExpression(R"("[^"\\]*(\\.[^"\\]*)*")"), stringFmt});
         m_rules.append({QRegularExpression("//[^\n]*"), commentFmt});
         m_rules.append({QRegularExpression(R"(\b[A-Za-z_][A-Za-z0-9_]*(?=\())"), funcFmt});
-        m_rules.append({QRegularExpression(R"(\b\d+(\.\d+)?[fFuUlL]?\b)"), numberFmt});
+        m_rules.append({QRegularExpression(R"(\b(0[xX][0-9a-fA-F]+|0[bB][01]+|\d+(\.\d+)?)[fFuUlL]*\b)"), numberFmt});
         m_rules.append({QRegularExpression(R"(\b[A-Z][A-Za-z0-9_]*\b)"), typeFmt});
         m_commentStart = QRegularExpression(R"(/\*)");
         m_commentEnd = QRegularExpression(R"(\*/)");
