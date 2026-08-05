@@ -1,96 +1,88 @@
 # Vitrium
 
-A native, lightweight desktop text editor with a translucent glass look, built in C++ and Qt6 for macOS. No Electron, no WebView, no HTML/CSS anywhere in the stack — on macOS the blur is a real `NSVisualEffectView` reached through Objective-C++, not a CSS `backdrop-filter` fake.
+A transparent text editor for macOS, written in Swift and AppKit. No Electron, no WebView, no HTML/CSS anywhere in the stack — the blur is a real `NSVisualEffectView` sampling what is actually behind the window, not a `backdrop-filter` approximation.
 
 <div align="center">
-  <img src="docs/screenshot.png" alt="Vitrium" width="600" />
+  <img src="docs/screenshot.png" alt="Vitrium" width="700" />
 </div>
 
 ---
 
-
 ## Features
 
+- **Glass, on by default** — compositor-level blur with an adjustable tint, from a bare blur through to nearly solid. The tab strip, gutter, editor and status bar all sit on the same pane of glass.
 - **Multi-document tabs** — new, close, close others/all, switch by keyboard or click. Opening a file into an empty untitled tab reuses it instead of piling up tabs.
-- **Syntax highlighting** — Python, C/C++, JavaScript/TypeScript, Shell, YAML, JSON, Markdown, plain text.
+- **Syntax highlighting** — Python, C/C++, Swift, JavaScript/TypeScript, Shell, YAML, JSON, Markdown.
 - **Find & Replace** — case-sensitive and whole-word toggles, live match count, wraparound, Replace All as a single undo step.
-- **Code editing QoL** — comment toggle, duplicate line, move line up/down, indent/outdent selection, auto-indent, bracket/quote auto-close, bracket-match highlighting.
-- **Atomic saves** — `QSaveFile` writes to a sibling temp file and only replaces the real target once every byte is confirmed flushed, so a crash or power loss mid-write can't corrupt an existing file.
-- **Async everything** — chunked load/save on a background thread, multiple files open through a queue so opening several at once can't splice one file's content into another's document.
-- **External change detection** — prompts to reload if a file changes on disk from outside the app; ignores the notification its own save triggers.
-- **Native macOS glass** — real compositor-level blur, opt-in.
-- **Session restore** — reopens what was open last time; remembers window geometry, zoom level, and glass opacity.
+- **Code editing** — comment toggle, duplicate line, move line up/down, indent/outdent, auto-indent, bracket/quote auto-close, bracket-match highlighting, go to line.
+- **Atomic saves** — every write lands in a sibling temp file and only replaces the target once complete, so a crash mid-save leaves the original intact rather than truncated.
+- **External change detection** — prompts to reload when a file changes on disk underneath you, and never mistakes your own save for someone else's edit.
+- **Session restore** — reopens what was open last time, and remembers window geometry, zoom level, word wrap and glass tint.
 
 ---
 
-## Verified behavior
+## How it renders
 
-| Scenario | Behavior |
+The three details that make the transparency real rather than faked:
+
+| Piece | What it does |
 |---|---|
-| Opening a file into a fresh empty tab | Reuses that tab instead of creating a new one |
-| Opening several files at once (CLI args or drag-drop) | Queued and loaded one at a time, each written straight into its own tab's document — never through whatever tab happens to be on screen |
-| App killed mid-save | Original file untouched — `QSaveFile` only replaces it after every byte is confirmed flushed |
-| File edited by another program while open | Prompted to reload; declined if the tab has unsaved local edits instead of silently clobbering them |
-| Closing a tab / quitting with unsaved changes | Blocking Save / Discard / Cancel confirmation, one dialog per dirty tab |
-| Saving a new file without typing an extension | Defaults to the extension matching the tab's detected language (`.py`, `.js`, `.sh`, ...), not left extensionless |
-| Multi-line comment toggle, indent/outdent, duplicate/move line | Exact output match, round-trips cleanly, verified against the compiled binary, not just compiled |
-| Glass opacity slider | Editor, gutter, tab strip, and top bar all track it together, uniformly |
+| `NSVisualEffectView`, `.behindWindow` blending | The compositor samples the actual desktop behind the window. Moving the window over different wallpaper changes what you see through it. |
+| Every view non-opaque | The scroll view, clip view, text view and gutter all have `drawsBackground = false`. One opaque view anywhere in the chain punches a solid rectangle through the glass. |
+| A single tint layer | One dark wash over the blur, adjustable with `⌘⌥[` / `⌘⌥]`. Tinting each view separately is what makes glass UIs look patchy. |
+
+One consequence worth knowing: a window that is movable by its background makes AppKit treat every non-opaque view as draggable chrome. The tab strip has to opt out of that explicitly, or clicking a tab drags the window instead of switching tabs.
+
+---
+
+## Highlighting
+
+Each language's rules compile into **one alternation regex, in precedence order** — comments and strings first, then keywords, numbers, functions and types. ICU tries alternatives left-to-right at each position, so the first rule that matches claims those characters outright.
+
+That ordering is the whole design. The obvious alternative — apply rules in sequence and let later ones overwrite earlier ones — cannot express "a keyword inside a string is not a keyword" and "a quote inside a comment does not open a string" at the same time. Whichever of the two you apply last wins in *both* directions, and one of them is always wrong.
+
+Only the edited lines are recoloured on each keystroke, so typing is O(line) rather than O(document). Block comments are the exception, since they can span any distance: the recolour window widens to the end of the file whenever an edit touches a `/*` or `*/`, and the scan restarts from the last `*/` above the edit — the nearest point guaranteed to be outside a comment.
 
 ---
 
 ## Requirements
 
-- macOS (native glass and window-control conventions are macOS-specific; the Qt-only rendering path also builds on Linux/Windows)
-- Qt6 (Widgets)
-- CMake 3.16+
-- C++20 compiler
+- macOS 13 or later
+- Swift 6 toolchain — **Xcode is not required**, Command Line Tools is enough (`xcode-select --install`)
 
 ---
 
-## Installation
-
-### 1. Install dependencies
-
-```zsh
-brew install qt cmake
-```
-
-### 2. Clone and build
+## Build
 
 ```zsh
 git clone https://github.com/chakri192/vitrium.git
 cd vitrium
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
+./Scripts/bundle.sh
 ```
 
-### 3. Run
+That builds the app and assembles `build/Vitrium.app`. Then:
 
 ```zsh
-open build/Vitrum.app
+open build/Vitrium.app
 ```
 
-Or open a file (or several) directly:
+Or open files directly:
 
 ```zsh
-./build/Vitrum.app/Contents/MacOS/Vitrum path/to/file.py path/to/other.js
+./build/Vitrium.app/Contents/MacOS/Vitrium file.py other.swift
 ```
 
 ---
 
-## Usage
-
-Enable native macOS glass (off by default):
+## Tests
 
 ```zsh
-VITRUM_ENABLE_GLASS=1 ./build/Vitrum.app/Contents/MacOS/Vitrum
+./Scripts/test.sh
 ```
 
-Package as a distributable bundle:
+43 tests covering highlighting precedence, incremental-vs-full colouring agreement, the line-editing operations, search, dirty tracking and atomic saves.
 
-```zsh
-macdeployqt build/Vitrum.app
-```
+The suite is an ordinary executable rather than `swift test`, deliberately: XCTest ships only with Xcode, and the Command Line Tools' copy of swift-testing is missing its Foundation overlay. A plain executable runs anywhere Swift does, which is the same bar the app itself is held to.
 
 ---
 
@@ -102,51 +94,49 @@ macdeployqt build/Vitrum.app
 | `⌘T` / `⌘W` | New tab / Close tab |
 | `⌘⌥W` / `⌘⌥⇧W` | Close other tabs / Close all tabs |
 | `⌘⇧]` `⌘⇧[`, `⌃⇥` `⌃⇧⇥` | Next / previous tab |
-| `⌘F` / `⌘⌥F` / `⌘G` | Find / Find & Replace / Find Next |
+| `⌘F` / `⌘⌥F` / `⌘G` / `⌘⇧G` | Find / Find & Replace / Find Next / Find Previous |
 | `⌘L` | Go to line |
 | `⌘/` | Toggle comment |
 | `⌘D` | Duplicate line |
 | `⌥↑` / `⌥↓` | Move line up / down |
-| Tab / Shift+Tab (on selection) | Indent / outdent |
+| `⌘]` / `⌘[` | Indent / outdent |
 | `⌥Z` | Toggle word wrap |
 | `⌘=` / `⌘-` / `⌘0` | Zoom in / out / reset |
-| `[` / `]` | Decrease / increase glass opacity |
-| `⌘⇧O` | Open recent |
+| `⌘⌥[` / `⌘⌥]` | More / less transparent |
+| `⌘⇧R` | Reveal in Finder |
 | `⌘Q` | Quit |
+
+`⌃⇥` is bound to the *physical* Control key, matching Safari, Xcode and Terminal.
 
 ---
 
 ## Architecture
 
-**~10 files, one class per concern**
+`Sources/VitriumKit` holds everything; `Sources/Vitrium` is a three-line executable and `Sources/VitriumTests` is the test runner. The split exists so the tests can reach the real code through `@testable import`.
 
-- `MainWindow` — window chrome, tab/document management, file I/O orchestration, settings persistence
-- `Editor` — `QPlainTextEdit` subclass: gutter, cursor rendering, glass palette, line-level editing operations
-- `Highlighter` — `QSyntaxHighlighter`, per-language rules, comment prefixes, default save extensions
-- `AutoHideBar` / `TabBar` / `FindBar` — the three UI chrome pieces
-- `FileWorker` — `QThread`-based chunked async load/save
-- `MacVibrancy` — macOS-only native blur (Objective-C++)
-
----
-
-## Troubleshooting
-
-| Problem | Fix |
+| File | Responsibility |
 |---|---|
-| Window looks flat/opaque instead of glassy | Native glass is opt-in — run with `VITRUM_ENABLE_GLASS=1` |
-| Saved file has no extension | Fixed in current version — save dialog defaults to the extension matching the tab's language; type your own to override |
-| `Ctrl+Tab` doesn't switch tabs | Qt maps the `"Ctrl"` string to the physical Cmd key on macOS — this build binds tab-switching to the physical Control key specifically (`Qt::MetaModifier`), matching Safari/Xcode/Terminal convention |
-| Build fails on `MacVibrancy.mm` | That file only compiles on macOS (`if(APPLE)` in `CMakeLists.txt`) — if you're seeing it fail on macOS itself, check `-fobjc-arc` is being passed (set in `CMakeLists.txt`) |
-| Reload prompt appears on every save | `QFileSystemWatcher` should suppress its own writes automatically — if this happens, the file's path likely changed case/symlink between save and watch |
+| `GlassWindow` | Transparent window, blur, tint layer |
+| `MainWindowController` | Window chrome, tab list, file operations, find |
+| `Document` | One tab: URL, dirty state, load/save, external-change tracking |
+| `EditorPane` | Scroll view + text view + gutter + highlighter, one per tab |
+| `EditorTextView` | Editing behaviour: auto-indent, auto-close, line operations, per-tab undo |
+| `SyntaxHighlighter` | Incremental colouring over `NSTextStorage` |
+| `Language` | Detection, keywords, comment syntax, rule precedence |
+| `LineNumberRuler` | The gutter, with a cached line index |
+| `TabBarView` / `FindBarView` / `StatusBarView` | The three chrome pieces |
+| `FileIO` / `Preferences` | Atomic saves, async loads, persisted settings |
+
+Each tab owns a complete `EditorPane` rather than sharing one text view. That costs a little more memory than swapping text storage around, but scroll position, selection and the undo stack survive a tab switch with no bookkeeping at all. Each tab also gets its own `UndoManager` — the AppKit default is the *window's*, which every tab would share, so undoing in one tab could walk back an edit made in another.
 
 ---
 
 ## What it doesn't do
 
 - No multi-cursor editing or split view
-- No LSP/autocomplete — syntax highlighting only, no semantic analysis
+- No LSP, autocomplete or semantic analysis — highlighting is lexical
 - No plugin system
-- Native glass is macOS-only; other platforms get a translucent Qt palette tint instead
+- macOS only. The glass, the window conventions and the whole UI layer are AppKit.
 
 ---
 
@@ -159,14 +149,5 @@ MIT
 | Contributor | Role |
 |-------------|------|
 | [chakri192](https://github.com/chakri192) | Author |
-| [aider](https://github.com/Aider-AI/aider) | AI pair programmer |
 
-### AI tooling
-
-README and code contributions assisted by [aider](https://github.com/Aider-AI/aider) using local LLMs via [Ollama](https://ollama.com):
-
-| Model | Used for |
-|-------|----------|
-| `qwen2.5-coder:7b` | Code suggestions, refactoring |
-| `llama3.1:8b` | Prose, documentation, commit messages |
-
+The Qt/C++ version this replaced was written with [aider](https://github.com/Aider-AI/aider) driving local models via [Ollama](https://ollama.com). The Swift rewrite was done with Claude Code.

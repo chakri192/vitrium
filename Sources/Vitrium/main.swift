@@ -1,0 +1,3 @@
+import VitriumKit
+
+VitriumApp.run()
