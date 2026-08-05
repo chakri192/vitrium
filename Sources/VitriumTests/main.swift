@@ -56,6 +56,24 @@ func range(of needle: String, in text: String) -> NSRange {
     (text as NSString).range(of: needle)
 }
 
+/// Spins the main run loop until `done`, so completions dispatched back to the
+/// main queue actually get delivered inside a test.
+func pump(until done: () -> Bool, timeout: TimeInterval = 5) {
+    let deadline = Date().addingTimeInterval(timeout)
+    while !done() && Date() < deadline {
+        RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.01))
+    }
+}
+
+/// Runs `body` with a throwaway directory that is removed afterwards.
+func withTemporaryDirectory(_ body: (URL) -> Void) {
+    let directory = FileManager.default.temporaryDirectory
+        .appendingPathComponent("vitrium-tests-\(UUID().uuidString)")
+    try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    body(directory)
+}
+
 // MARK: - Syntax highlighting
 
 runner.suite("Syntax rules") {
@@ -405,6 +423,112 @@ runner.suite("Dirty tracking") {
     }
 }
 
+// MARK: - Saving
+
+runner.suite("Saving") {
+
+    runner.test("an asynchronous save writes the file and clears the dirty flag") {
+        withTemporaryDirectory { directory in
+            let url = directory.appendingPathComponent("out.py")
+            let document = Document()
+            document.pane.textView.insertText("value = 1\n", replacementRange: NSRange(location: 0, length: 0))
+            runner.expect(document.isDirty, "should start dirty")
+
+            var finished = false
+            var failure: Error?
+            document.save(to: url) { error in
+                failure = error
+                finished = true
+            }
+            pump(until: { finished })
+
+            runner.expect(finished, "the save never completed")
+            runner.expectNil(failure, "save reported an error")
+            runner.expectEqual(try? String(contentsOf: url, encoding: .utf8), "value = 1\n")
+            runner.expect(!document.isDirty, "a completed save should clear the dirty marker")
+            runner.expectEqual(document.url, url)
+            runner.expectEqual(document.language, .python, "language should follow the saved extension")
+        }
+    }
+
+    // The write runs on a background queue against a snapshot taken when it
+    // started. Anything typed while it is in flight is not on disk, so the tab
+    // has to stay dirty rather than claim those edits were saved.
+    runner.test("typing during a save leaves the tab dirty") {
+        withTemporaryDirectory { directory in
+            let url = directory.appendingPathComponent("out.txt")
+            let document = Document()
+            document.pane.textView.insertText("first", replacementRange: NSRange(location: 0, length: 0))
+
+            var finished = false
+            document.save(to: url) { _ in finished = true }
+
+            // Runs before the completion, which comes back on this queue.
+            document.pane.textView.setSelectedRange(NSRange(location: 5, length: 0))
+            document.pane.textView.insertText(" second", replacementRange: NSRange(location: 5, length: 0))
+
+            pump(until: { finished })
+
+            runner.expectEqual(try? String(contentsOf: url, encoding: .utf8), "first",
+                               "the snapshot taken at save time should be what landed")
+            runner.expect(document.isDirty, "edits made during the save are not on disk")
+        }
+    }
+
+    runner.test("a blocking save writes and marks clean") {
+        withTemporaryDirectory { directory in
+            let url = directory.appendingPathComponent("out.swift")
+            let document = Document()
+            document.pane.textView.insertText("let a = 1\n", replacementRange: NSRange(location: 0, length: 0))
+
+            try? document.saveSynchronously(to: url)
+
+            runner.expectEqual(try? String(contentsOf: url, encoding: .utf8), "let a = 1\n")
+            runner.expect(!document.isDirty, "a blocking save should clear the dirty marker")
+            runner.expectEqual(document.language, .swift)
+        }
+    }
+
+    runner.test("saving reports an error rather than throwing away the text") {
+        let unwritable = URL(fileURLWithPath: "/System/definitely/not/writable.txt")
+        let document = Document()
+        document.pane.textView.insertText("keep me", replacementRange: NSRange(location: 0, length: 0))
+
+        var finished = false
+        var failure: Error?
+        document.save(to: unwritable) { error in
+            failure = error
+            finished = true
+        }
+        pump(until: { finished })
+
+        runner.expect(failure != nil, "an unwritable path should report an error")
+        runner.expect(document.isDirty, "a failed save must leave the tab dirty")
+        runner.expectEqual(document.pane.text, "keep me")
+    }
+}
+
+// MARK: - Language override
+
+runner.suite("Language override") {
+
+    // An untitled tab has no extension to detect from, so without a manual
+    // override nothing is ever highlighted until it is saved.
+    runner.test("setting the language colours an untitled buffer") {
+        let document = Document()
+        document.pane.text = "def f():\n    pass\n"
+        runner.expectEqual(document.language, .plain)
+
+        let storage = document.pane.textView.textStorage
+        let before = storage?.attribute(.foregroundColor, at: 0, effectiveRange: nil) as? NSColor
+        runner.expectEqual(before, Theme.foreground, "plain text should not be coloured")
+
+        document.language = .python
+        let after = storage?.attribute(.foregroundColor, at: 0, effectiveRange: nil) as? NSColor
+        runner.expectEqual(after, Theme.keyword, "`def` should be a keyword once the language is set")
+    }
+}
+
 // MARK: - Search
 
 runner.suite("Find") {
@@ -461,52 +585,40 @@ runner.suite("Find") {
 runner.suite("File I/O") {
 
     runner.test("saves atomically and reports the new modification date") {
-        let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("vitrium-tests-\(UUID().uuidString)")
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: directory) }
-
-        let url = directory.appendingPathComponent("sample.py")
-        let date = try? FileIO.save(text: "print('hi')\n", to: url)
-        runner.expect(date != nil, "save returned no modification date")
-        runner.expectEqual(try? String(contentsOf: url, encoding: .utf8), "print('hi')\n")
+        withTemporaryDirectory { directory in
+            let url = directory.appendingPathComponent("sample.py")
+            let date = try? FileIO.save(text: "print('hi')\n", to: url)
+            runner.expect(date != nil, "save returned no modification date")
+            runner.expectEqual(try? String(contentsOf: url, encoding: .utf8), "print('hi')\n")
+        }
     }
 
     runner.test("overwriting leaves no temp files behind") {
-        let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("vitrium-tests-\(UUID().uuidString)")
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: directory) }
+        withTemporaryDirectory { directory in
+            let url = directory.appendingPathComponent("sample.txt")
+            _ = try? FileIO.save(text: "first", to: url)
+            _ = try? FileIO.save(text: "second", to: url)
 
-        let url = directory.appendingPathComponent("sample.txt")
-        _ = try? FileIO.save(text: "first", to: url)
-        _ = try? FileIO.save(text: "second", to: url)
-
-        let contents = (try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? []
-        runner.expectEqual(contents.count, 1, "atomic save left a stray file: \(contents)")
-        runner.expectEqual(try? String(contentsOf: url, encoding: .utf8), "second")
+            let contents = (try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? []
+            runner.expectEqual(contents.count, 1, "atomic save left a stray file: \(contents)")
+            runner.expectEqual(try? String(contentsOf: url, encoding: .utf8), "second")
+        }
     }
 
     runner.test("rejects binary files") {
-        let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("vitrium-tests-\(UUID().uuidString)")
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: directory) }
+        withTemporaryDirectory { directory in
+            let url = directory.appendingPathComponent("blob.bin")
+            try? Data([0x00, 0x01, 0x02]).write(to: url)
 
-        let url = directory.appendingPathComponent("blob.bin")
-        try? Data([0x00, 0x01, 0x02]).write(to: url)
-
-        var failure: Error?
-        let done = DispatchSemaphore(value: 0)
-        FileIO.load(url: url) { result in
-            if case .failure(let error) = result { failure = error }
-            done.signal()
+            var finished = false
+            var failure: Error?
+            FileIO.load(url: url) { result in
+                if case .failure(let error) = result { failure = error }
+                finished = true
+            }
+            pump(until: { finished })
+            runner.expect(failure != nil, "a file with null bytes should not load as text")
         }
-        // The completion hops to the main queue, which is this thread — pump it.
-        while done.wait(timeout: .now()) == .timedOut {
-            RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.01))
-        }
-        runner.expect(failure != nil, "a file with null bytes should not load as text")
     }
 }
 

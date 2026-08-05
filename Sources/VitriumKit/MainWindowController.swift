@@ -88,6 +88,37 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, FindBarD
         tabBar.onSelect = { [weak self] index in self?.selectTab(index) }
         tabBar.onClose = { [weak self] index in self?.closeTab(at: index) }
         tabBar.onNew = { [weak self] in self?.newTab(nil) }
+
+        statusBar.onSelectLanguage = { [weak self] language in
+            guard let self, let document = self.currentDocument else { return }
+            document.language = language
+            self.refreshChrome()
+        }
+    }
+
+    /// The Open Recent list, as a popup. A submenu can't carry a useful key
+    /// equivalent, so `⌘⇧O` posts the same list here instead.
+    @objc func showRecentFiles(_ sender: Any?) {
+        let recents = Preferences.recentFiles.filter {
+            FileManager.default.fileExists(atPath: $0.path)
+        }
+        guard !recents.isEmpty else { NSSound.beep(); return }
+
+        let menu = NSMenu()
+        for url in recents {
+            let item = NSMenuItem(title: url.lastPathComponent,
+                                  action: #selector(openRecentFile(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = url
+            item.toolTip = url.path
+            menu.addItem(item)
+        }
+        menu.popUp(positioning: nil, at: NSPoint(x: Theme.trafficLightInset, y: 0), in: tabBar)
+    }
+
+    @objc private func openRecentFile(_ sender: NSMenuItem) {
+        guard let url = sender.representedObject as? URL else { return }
+        open(url: url)
     }
 
     // MARK: Session
@@ -123,6 +154,9 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, FindBarD
         document.pane.fontSize = fontSize
         document.pane.wrapsLines = wrapsLines
         document.onDirtyChange = { [weak self] in self?.refreshChrome() }
+        document.pane.textView.onOpenFiles = { [weak self] urls in
+            for url in urls { self?.open(url: url) }
+        }
         documents.append(document)
         selectTab(documents.count - 1)
         return document
@@ -220,7 +254,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, FindBarD
 
         switch alert.runModal() {
         case .alertFirstButtonReturn:
-            return performSave(document: document)
+            return performSaveBlocking(document: document)
         case .alertSecondButtonReturn:
             return true
         default:
@@ -276,47 +310,72 @@ final class MainWindowController: NSWindowController, NSWindowDelegate, FindBarD
 
     @objc func saveDocument(_ sender: Any?) {
         guard let document = currentDocument else { return }
-        _ = performSave(document: document)
+        performSave(document: document)
     }
 
     @objc func saveDocumentAs(_ sender: Any?) {
         guard let document = currentDocument else { return }
-        _ = performSave(document: document, forcingPanel: true)
+        performSave(document: document, forcingPanel: true)
     }
 
-    @discardableResult
-    private func performSave(document: Document, forcingPanel: Bool = false) -> Bool {
-        var destination = document.url
+    /// Where a save should land, running the panel when the tab has no file yet
+    /// or Save As was asked for. Returns nil if the user cancels.
+    private func destination(for document: Document, forcingPanel: Bool) -> URL? {
+        if let existing = document.url, !forcingPanel { return existing }
 
-        if destination == nil || forcingPanel {
-            let panel = NSSavePanel()
-            panel.nameFieldStringValue = document.suggestedFileName
-            panel.canCreateDirectories = true
-            if let existing = document.url {
-                panel.directoryURL = existing.deletingLastPathComponent()
-            }
-            guard panel.runModal() == .OK, var url = panel.url else { return false }
-
-            // A name typed without an extension saves as the tab's language
-            // rather than extensionless.
-            if url.pathExtension.isEmpty {
-                url = url.appendingPathExtension(document.language.defaultExtension)
-            }
-            destination = url
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = document.suggestedFileName
+        panel.canCreateDirectories = true
+        if let existing = document.url {
+            panel.directoryURL = existing.deletingLastPathComponent()
         }
+        guard panel.runModal() == .OK, var url = panel.url else { return nil }
 
-        guard let destination else { return false }
+        // A name typed without an extension saves as the tab's language rather
+        // than extensionless.
+        if url.pathExtension.isEmpty {
+            url = url.appendingPathExtension(document.language.defaultExtension)
+        }
+        return url
+    }
+
+    /// The interactive save. The write runs off the main thread, so a large
+    /// file doesn't stall typing.
+    private func performSave(document: Document, forcingPanel: Bool = false) {
+        guard let destination = destination(for: document, forcingPanel: forcingPanel) else { return }
+
+        statusBar.flash("Saving \(destination.lastPathComponent)…", revertingTo: statusPath)
+        document.save(to: destination) { [weak self] error in
+            guard let self else { return }
+            if let error {
+                self.presentError(error, title: "Couldn't save \(destination.lastPathComponent)")
+            } else {
+                self.noteSaved(destination)
+                self.statusBar.flash("Saved \(destination.lastPathComponent)", revertingTo: self.statusPath)
+            }
+            self.refreshChrome()
+        }
+    }
+
+    /// The blocking save, used only when closing or quitting — the tab can't go
+    /// away until the bytes are actually down.
+    @discardableResult
+    private func performSaveBlocking(document: Document) -> Bool {
+        guard let destination = destination(for: document, forcingPanel: false) else { return false }
         do {
-            try document.save(to: destination)
-            Preferences.noteRecentFile(destination)
-            NSDocumentController.shared.noteNewRecentDocumentURL(destination)
-            statusBar.flash("Saved \(destination.lastPathComponent)", revertingTo: statusPath)
+            try document.saveSynchronously(to: destination)
+            noteSaved(destination)
             refreshChrome()
             return true
         } catch {
             presentError(error, title: "Couldn't save \(destination.lastPathComponent)")
             return false
         }
+    }
+
+    private func noteSaved(_ url: URL) {
+        Preferences.noteRecentFile(url)
+        NSDocumentController.shared.noteNewRecentDocumentURL(url)
     }
 
     @objc func revealInFinder(_ sender: Any?) {

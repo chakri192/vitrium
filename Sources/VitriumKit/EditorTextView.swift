@@ -65,6 +65,7 @@ final class EditorTextView: NSTextView {
         selectedTextAttributes = [.backgroundColor: Theme.selection]
         font = Theme.editorFont(size: Theme.defaultFontSize)
         textColor = Theme.foreground
+        registerForDraggedTypes(registeredDraggedTypes + [.fileURL])
 
         NotificationCenter.default.addObserver(
             self, selector: #selector(selectionChanged),
@@ -72,6 +73,44 @@ final class EditorTextView: NSTextView {
     }
 
     deinit { NotificationCenter.default.removeObserver(self) }
+
+    // MARK: Drag and drop
+
+    /// Called with dropped files so the controller can open them as tabs.
+    var onOpenFiles: (([URL]) -> Void)?
+
+    /// Files dropped on the editor body have to be intercepted here.
+    ///
+    /// Registering the window for `.fileURL` isn't enough: `NSTextView` is a
+    /// drag destination in its own right and sits deeper in the hierarchy, so it
+    /// wins and inserts the path as text instead. Anything that isn't a file
+    /// drag — dragging a selection around, for one — falls through to `super`.
+    private func droppedFiles(_ sender: NSDraggingInfo) -> [URL] {
+        let pasteboard = sender.draggingPasteboard
+        guard pasteboard.availableType(from: [.fileURL]) != nil else { return [] }
+        let urls = pasteboard.readObjects(forClasses: [NSURL.self],
+                                          options: [.urlReadingFileURLsOnly: true]) as? [URL]
+        return urls ?? []
+    }
+
+    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        droppedFiles(sender).isEmpty ? super.draggingEntered(sender) : .copy
+    }
+
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        droppedFiles(sender).isEmpty ? super.draggingUpdated(sender) : .copy
+    }
+
+    override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        droppedFiles(sender).isEmpty ? super.prepareForDragOperation(sender) : true
+    }
+
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        let files = droppedFiles(sender)
+        guard !files.isEmpty else { return super.performDragOperation(sender) }
+        onOpenFiles?(files)
+        return true
+    }
 
     // MARK: Text helpers
 

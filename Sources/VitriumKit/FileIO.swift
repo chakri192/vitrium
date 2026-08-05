@@ -53,12 +53,32 @@ enum FileIO {
     /// Writes atomically: the bytes land in a sibling temp file and only replace
     /// the target once the write is complete, so a crash mid-save leaves the
     /// original intact rather than truncated.
+    ///
+    /// Synchronous. Use this only where blocking is the right behaviour — the
+    /// save-before-close path, where the document is going away and the answer
+    /// is needed before the tab can be dismissed.
     @discardableResult
     static func save(text: String, to url: URL) throws -> Date? {
         let data = Data(text.utf8)
         try data.write(to: url, options: .atomic)
         return try? FileManager.default
             .attributesOfItem(atPath: url.path)[.modificationDate] as? Date
+    }
+
+    /// The same write, off the main thread, with the result handed back on it.
+    /// This is the interactive path — a multi-megabyte save shouldn't stall
+    /// typing.
+    static func save(text: String, to url: URL,
+                     completion: @escaping (Result<Date?, Error>) -> Void) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let result: Result<Date?, Error>
+            do {
+                result = .success(try save(text: text, to: url))
+            } catch {
+                result = .failure(error)
+            }
+            DispatchQueue.main.async { completion(result) }
+        }
     }
 
     static func modificationDate(of url: URL) -> Date? {
