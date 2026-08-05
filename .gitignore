@@ -13,3 +13,6 @@ build/
 # Editors
 .vscode/
 .idea/
+
+# SwiftPM cross-build scratch
+.build-cross/

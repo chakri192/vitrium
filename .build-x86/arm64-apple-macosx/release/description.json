@@ -1,0 +1,971 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.Vitrium-arm64-apple-macosx26.0-release.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/sources",
+      "importPath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/Vitrium/main.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules/VitriumKit.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "Vitrium",
+      "moduleOutputPath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules/Vitrium.swiftmodule",
+      "objects" : [
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/main.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-whole-module-optimization",
+        "-num-threads",
+        "10",
+        "-serialize-diagnostics",
+        "-O",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "Vitrium_main",
+        "-swift-version",
+        "5",
+        "-I",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-L",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-plugin-path",
+        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-target",
+        "x86_64-apple-macosx13.0",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "vitrium"
+      ],
+      "outputFileMapPath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/main.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules/Vitrium.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/Vitrium/main.swift"
+      ],
+      "tempsPath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build",
+      "wholeModuleOptimization" : true
+    },
+    "C.VitriumKit-arm64-apple-macosx26.0-release.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/sources",
+      "importPath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/AppDelegate.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Document.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/EditorPane.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/EditorTextView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/FileIO.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/FindBarView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/GlassWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Language.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/LineIndex.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/LineNumberRuler.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/MainWindowController.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Preferences.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/StatusBarView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/SyntaxHighlighter.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/TabBarView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/TextSearcher.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Theme.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/VitriumApp.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "VitriumKit",
+      "moduleOutputPath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules/VitriumKit.swiftmodule",
+      "objects" : [
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/AppDelegate.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Document.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/EditorPane.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/EditorTextView.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/FileIO.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/FindBarView.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/GlassWindow.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Language.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/LineIndex.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/LineNumberRuler.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/MainWindowController.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Preferences.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/StatusBarView.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/SyntaxHighlighter.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/TabBarView.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/TextSearcher.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Theme.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/VitriumApp.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-whole-module-optimization",
+        "-num-threads",
+        "10",
+        "-serialize-diagnostics",
+        "-O",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/include/VitriumKit-Swift.h",
+        "-swift-version",
+        "5",
+        "-I",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-L",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-plugin-path",
+        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-target",
+        "x86_64-apple-macosx13.0",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "vitrium"
+      ],
+      "outputFileMapPath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/AppDelegate.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Document.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/EditorPane.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/EditorTextView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/FileIO.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/FindBarView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/GlassWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Language.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/LineIndex.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/LineNumberRuler.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/MainWindowController.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Preferences.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/StatusBarView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/SyntaxHighlighter.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/TabBarView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/TextSearcher.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Theme.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/VitriumApp.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules/VitriumKit.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/AppDelegate.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Document.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/EditorPane.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/EditorTextView.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/FileIO.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/FindBarView.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/GlassWindow.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Language.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/LineIndex.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/LineNumberRuler.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/MainWindowController.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Preferences.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/StatusBarView.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/SyntaxHighlighter.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/TabBarView.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/TextSearcher.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Theme.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/VitriumApp.swift"
+      ],
+      "tempsPath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build",
+      "wholeModuleOptimization" : true
+    },
+    "C.VitriumTests-arm64-apple-macosx26.0-release.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/sources",
+      "importPath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumTests/TestRunner.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumTests/main.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules/VitriumKit.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "VitriumTests",
+      "moduleOutputPath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules/VitriumTests.swiftmodule",
+      "objects" : [
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/TestRunner.swift.o",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/main.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-whole-module-optimization",
+        "-num-threads",
+        "10",
+        "-serialize-diagnostics",
+        "-O",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "VitriumTests_main",
+        "-swift-version",
+        "5",
+        "-I",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-L",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-plugin-path",
+        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-target",
+        "x86_64-apple-macosx13.0",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "vitrium"
+      ],
+      "outputFileMapPath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/TestRunner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/main.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules/VitriumTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumTests/TestRunner.swift",
+        "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumTests/main.swift"
+      ],
+      "tempsPath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build",
+      "wholeModuleOptimization" : true
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "Vitrium" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "Vitrium",
+      "-package-name",
+      "vitrium",
+      "-c",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/Vitrium/main.swift",
+      "-I",
+      "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-whole-module-optimization",
+      "-num-threads",
+      "10",
+      "-serialize-diagnostics",
+      "-O",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "Vitrium_main",
+      "-swift-version",
+      "5",
+      "-I",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-L",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-plugin-path",
+      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-target",
+      "x86_64-apple-macosx13.0",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "vitrium",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ],
+    "VitriumKit" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "VitriumKit",
+      "-package-name",
+      "vitrium",
+      "-c",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/AppDelegate.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Document.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/EditorPane.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/EditorTextView.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/FileIO.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/FindBarView.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/GlassWindow.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Language.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/LineIndex.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/LineNumberRuler.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/MainWindowController.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Preferences.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/StatusBarView.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/SyntaxHighlighter.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/TabBarView.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/TextSearcher.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Theme.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/VitriumApp.swift",
+      "-I",
+      "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-whole-module-optimization",
+      "-num-threads",
+      "10",
+      "-serialize-diagnostics",
+      "-O",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/include/VitriumKit-Swift.h",
+      "-swift-version",
+      "5",
+      "-I",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-L",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-plugin-path",
+      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-target",
+      "x86_64-apple-macosx13.0",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "vitrium",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ],
+    "VitriumTests" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "VitriumTests",
+      "-package-name",
+      "vitrium",
+      "-c",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumTests/TestRunner.swift",
+      "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumTests/main.swift",
+      "-I",
+      "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-whole-module-optimization",
+      "-num-threads",
+      "10",
+      "-serialize-diagnostics",
+      "-O",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "VitriumTests_main",
+      "-swift-version",
+      "5",
+      "-I",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-L",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-plugin-path",
+      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-target",
+      "x86_64-apple-macosx13.0",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "vitrium",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "Vitrium" : [
+      "VitriumKit"
+    ],
+    "VitriumKit" : [
+
+    ],
+    "VitriumTests" : [
+      "VitriumKit"
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/Vitrium/main.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/sources"
+    },
+    "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/main.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/AppDelegate.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Document.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/EditorPane.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/EditorTextView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/FileIO.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/FindBarView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/GlassWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Language.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/LineIndex.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/LineNumberRuler.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/MainWindowController.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Preferences.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/StatusBarView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/SyntaxHighlighter.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/TabBarView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/TextSearcher.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Theme.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/VitriumApp.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.product/Objects.LinkFileList"
+    },
+    "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/AppDelegate.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Document.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/EditorPane.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/EditorTextView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/FileIO.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/FindBarView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/GlassWindow.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Language.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/LineIndex.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/LineNumberRuler.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/MainWindowController.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Preferences.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/StatusBarView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/SyntaxHighlighter.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/TabBarView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/TextSearcher.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/Theme.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumKit/VitriumApp.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/sources"
+    },
+    "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumTests/TestRunner.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumTests/main.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/sources"
+    },
+    "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/AppDelegate.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Document.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/EditorPane.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/EditorTextView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/FileIO.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/FindBarView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/GlassWindow.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Language.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/LineIndex.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/LineNumberRuler.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/MainWindowController.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Preferences.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/StatusBarView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/SyntaxHighlighter.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/TabBarView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/TextSearcher.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/Theme.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumKit.build/VitriumApp.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/TestRunner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/main.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.product/Objects.LinkFileList"
+    },
+    "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/swift-version--1AB21518FC5DEDBE.txt"
+    }
+  }
+}

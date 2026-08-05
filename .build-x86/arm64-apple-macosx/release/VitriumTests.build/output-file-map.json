@@ -1,0 +1,19 @@
+{
+  "": {
+    "dependencies": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/VitriumTests.d",
+    "object": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/VitriumTests.o",
+    "swift-dependencies": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/master.swiftdeps"
+  },
+  "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumTests/TestRunner.swift": {
+    "object": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/TestRunner.swift.o",
+    "swiftmodule": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/TestRunner~partial.swiftmodule",
+    "swift-dependencies": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/TestRunner.swiftdeps",
+    "diagnostics": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/TestRunner.dia"
+  },
+  "/Users/chakri/Documents/portfolio/vitrium/Sources/VitriumTests/main.swift": {
+    "object": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/main.swift.o",
+    "swiftmodule": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/main.swiftdeps",
+    "diagnostics": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/VitriumTests.build/main.dia"
+  }
+}

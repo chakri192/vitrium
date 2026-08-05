@@ -1,0 +1,13 @@
+{
+  "": {
+    "dependencies": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/Vitrium.d",
+    "object": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/Vitrium.o",
+    "swift-dependencies": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/master.swiftdeps"
+  },
+  "/Users/chakri/Documents/portfolio/vitrium/Sources/Vitrium/main.swift": {
+    "object": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/main.swift.o",
+    "swiftmodule": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/main.swiftdeps",
+    "diagnostics": "/Users/chakri/Documents/portfolio/vitrium/.build-x86/arm64-apple-macosx/release/Vitrium.build/main.dia"
+  }
+}
