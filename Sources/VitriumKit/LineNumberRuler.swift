@@ -141,8 +141,11 @@ final class LineNumberRuler: NSRulerView {
             line += 1
         }
 
-        // Hairline separating gutter from text.
+        // Hairline separating gutter from text, clipped to the ruler's own
+        // bounds rather than spanning whatever rect AppKit asked us to redraw.
         Theme.hairline.setFill()
-        NSRect(x: ruleThickness - 1, y: rect.minY, width: 1, height: rect.height).fill()
+        NSRect(x: ruleThickness - 1, y: bounds.minY, width: 1, height: bounds.height)
+            .intersection(rect)
+            .fill()
     }
 }
