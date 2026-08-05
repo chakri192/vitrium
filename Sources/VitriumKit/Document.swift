@@ -55,17 +55,30 @@ final class Document {
     private var savedHash = "".hashValue
 
     @objc private func textChanged() {
-        let nowDirty = pane.textLength != savedLength || pane.text.hashValue != savedHash
-        guard nowDirty != isDirty else { return }
-        isDirty = nowDirty
-        onDirtyChange?()
+        refreshDirtyState()
     }
 
     private func markClean() {
-        savedLength = pane.textLength
-        savedHash = pane.text.hashValue
-        guard isDirty else { return }
-        isDirty = false
+        markClean(matching: pane.text)
+    }
+
+    /// Records `snapshot` as the last-saved text, then re-derives the dirty flag
+    /// from what the buffer holds *now*.
+    ///
+    /// Those can differ: an asynchronous save writes a snapshot taken when it
+    /// started, and the user may have typed while it was in flight. Comparing
+    /// against the snapshot keeps the tab correctly marked dirty in that case,
+    /// rather than claiming the newer edits are on disk.
+    private func markClean(matching snapshot: String) {
+        savedLength = (snapshot as NSString).length
+        savedHash = snapshot.hashValue
+        refreshDirtyState()
+    }
+
+    private func refreshDirtyState() {
+        let nowDirty = pane.textLength != savedLength || pane.text.hashValue != savedHash
+        guard nowDirty != isDirty else { return }
+        isDirty = nowDirty
         onDirtyChange?()
     }
 
@@ -94,15 +107,44 @@ final class Document {
 
     // MARK: Saving
 
-    func save(to target: URL? = nil) throws {
+    /// Interactive save — the write happens off the main thread.
+    func save(to target: URL? = nil, completion: @escaping (Error?) -> Void) {
+        guard let destination = target ?? url else { completion(nil); return }
+        let snapshot = pane.text
+        isSaving = true
+
+        FileIO.save(text: snapshot, to: destination) { [weak self] result in
+            guard let self else { return }
+            self.isSaving = false
+            switch result {
+            case .success(let date):
+                self.adoptSavedState(destination: destination, modificationDate: date, snapshot: snapshot)
+                completion(nil)
+            case .failure(let error):
+                completion(error)
+            }
+        }
+    }
+
+    /// Blocking save, for the save-before-close path where the tab cannot be
+    /// dismissed until the bytes are down.
+    func saveSynchronously(to target: URL? = nil) throws {
         guard let destination = target ?? url else { return }
-        knownModificationDate = try FileIO.save(text: pane.text, to: destination)
+        let snapshot = pane.text
+        let date = try FileIO.save(text: snapshot, to: destination)
+        adoptSavedState(destination: destination, modificationDate: date, snapshot: snapshot)
+    }
+
+    private(set) var isSaving = false
+
+    private func adoptSavedState(destination: URL, modificationDate: Date?, snapshot: String) {
+        knownModificationDate = modificationDate
         ignoredModificationDate = nil
         if url != destination {
             url = destination
             language = Language.detect(url: destination)
         }
-        markClean()
+        markClean(matching: snapshot)
     }
 
     /// The filename the Save dialog should start with, carrying the extension

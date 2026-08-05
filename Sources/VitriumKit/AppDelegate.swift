@@ -114,6 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         recentMenu.delegate = self
         recentItem.submenu = recentMenu
         fileMenu.addItem(recentItem)
+        fileMenu.addItem(item("Recent Files…", #selector(MainWindowController.showRecentFiles(_:)), "o", [.command, .shift]))
 
         fileMenu.addItem(.separator())
         fileMenu.addItem(item("Close Tab", #selector(MainWindowController.closeCurrentTab(_:)), "w"))

@@ -12,7 +12,7 @@ possible are now structurally impossible.
   Command Line Tools is enough. No Qt, no CMake, no Objective-C++ shim.
 - `./Scripts/bundle.sh` builds and assembles `Vitrium.app`; `./Scripts/test.sh`
   runs the suite.
-- 43 tests, up from none.
+- 53 tests, up from none.
 
 ### Highlighting rewritten around precedence
 Rules used to be applied in sequence, each overwriting the last. That scheme
@@ -44,6 +44,19 @@ along the way:
   one-way flag.
 - **Escape didn't close the find bar.** A field editor binds Escape to
   `complete:`, not `cancelOperation:`; both are handled now.
+
+### Restored and added after the first pass
+- Files dropped on the **editor body** open as tabs. Registering the window for
+  file drags was not enough: `NSTextView` is a drag destination itself and sits
+  deeper in the hierarchy, so it won and inserted the path as text.
+- **`⌘⇧O`** posts the recent-files list, replacing the shortcut 1.x documented.
+  A submenu cannot carry a useful key equivalent, so it opens as a popup.
+- **Interactive saves run off the main thread.** Closing a dirty tab still
+  blocks, which is correct — the tab cannot go away until the bytes are down.
+  An async write works from a snapshot taken when it started, so text typed
+  while it is in flight correctly leaves the tab dirty.
+- **The language can be set by hand** from the status bar. An untitled tab has
+  no extension to detect from, so nothing was highlighted until it was saved.
 
 ### Other changes
 - Glass is on by default and adjustable with `⌘⌥[` / `⌘⌥]`, replacing the

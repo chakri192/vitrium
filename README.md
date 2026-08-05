@@ -12,10 +12,11 @@ A transparent text editor for macOS, written in Swift and AppKit. No Electron, n
 
 - **Glass, on by default** — compositor-level blur with an adjustable tint, from a bare blur through to nearly solid. The tab strip, gutter, editor and status bar all sit on the same pane of glass.
 - **Multi-document tabs** — new, close, close others/all, switch by keyboard or click. Opening a file into an empty untitled tab reuses it instead of piling up tabs.
-- **Syntax highlighting** — Python, C/C++, Swift, JavaScript/TypeScript, Shell, YAML, JSON, Markdown.
+- **Syntax highlighting** — Python, C/C++, Swift, JavaScript/TypeScript, Shell, YAML, JSON, Markdown. Detected from the filename, or set by hand from the status bar for a tab that hasn't been saved yet.
 - **Find & Replace** — case-sensitive and whole-word toggles, live match count, wraparound, Replace All as a single undo step.
 - **Code editing** — comment toggle, duplicate line, move line up/down, indent/outdent, auto-indent, bracket/quote auto-close, bracket-match highlighting, go to line.
-- **Atomic saves** — every write lands in a sibling temp file and only replaces the target once complete, so a crash mid-save leaves the original intact rather than truncated.
+- **Atomic saves** — every write lands in a sibling temp file and only replaces the target once complete, so a crash mid-save leaves the original intact rather than truncated. Loads and interactive saves run off the main thread; closing a dirty tab blocks until the bytes are down, because that is the one place where the answer is needed before the tab can go away.
+- **Drag and drop** — drop files anywhere on the window, including the editor body, to open them as tabs.
 - **External change detection** — prompts to reload when a file changes on disk underneath you, and never mistakes your own save for someone else's edit.
 - **Session restore** — reopens what was open last time, and remembers window geometry, zoom level, word wrap and glass tint.
 
@@ -80,7 +81,7 @@ Or open files directly:
 ./Scripts/test.sh
 ```
 
-43 tests covering highlighting precedence, incremental-vs-full colouring agreement, the line-editing operations, search, dirty tracking and atomic saves.
+53 tests covering highlighting precedence, incremental-vs-full colouring agreement, the line-editing operations, line numbering, search, dirty tracking, and both the blocking and asynchronous save paths.
 
 The suite is an ordinary executable rather than `swift test`, deliberately: XCTest ships only with Xcode, and the Command Line Tools' copy of swift-testing is missing its Foundation overlay. A plain executable runs anywhere Swift does, which is the same bar the app itself is held to.
 
@@ -103,6 +104,7 @@ The suite is an ordinary executable rather than `swift test`, deliberately: XCTe
 | `⌥Z` | Toggle word wrap |
 | `⌘=` / `⌘-` / `⌘0` | Zoom in / out / reset |
 | `⌘⌥[` / `⌘⌥]` | More / less transparent |
+| `⌘⇧O` | Recent files |
 | `⌘⇧R` | Reveal in Finder |
 | `⌘Q` | Quit |
 
