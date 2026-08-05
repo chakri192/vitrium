@@ -1,6 +1,79 @@
 # Changelog
 
-## Unreleased
+## 2.0.0 — Rewritten in Swift + AppKit
+
+Complete rebuild. The Qt6/C++ implementation is gone; Vitrium is now a native
+AppKit app with no third-party dependencies. Feature parity with 1.x, plus
+Swift syntax highlighting, and several classes of bug that the old design made
+possible are now structurally impossible.
+
+### Stack
+- Swift 6 + AppKit, built with SwiftPM. **Xcode is no longer required** —
+  Command Line Tools is enough. No Qt, no CMake, no Objective-C++ shim.
+- `./Scripts/bundle.sh` builds and assembles `Vitrium.app`; `./Scripts/test.sh`
+  runs the suite.
+- 53 tests, up from none.
+
+### Highlighting rewritten around precedence
+Rules used to be applied in sequence, each overwriting the last. That scheme
+cannot express "a keyword inside a string is not a keyword" and "a quote inside
+a comment does not open a string" at the same time — whichever rule you apply
+last wins in both directions, and one of them is always wrong. Symptom in 1.x:
+`for` and `with` rendered bold violet inside Python docstrings.
+
+Now each language compiles to one alternation regex in precedence order, so the
+first rule matching at a position claims those characters outright. Also fixed
+along the way:
+- Single-line string rules no longer match across newlines, so one unclosed
+  quote can't colour the rest of the file.
+- A `/*` inside a line comment no longer opens a block comment.
+- JSON keys and string values are distinguished.
+- Recolouring after an edit is asserted to match a full rehighlight.
+
+### Bugs fixed that were inherent to the old structure
+- **Undo crossed tabs.** `NSTextView` defaults to the *window's* undo manager,
+  which every tab shares. Each tab now owns its own.
+- **Tab clicks dragged the window.** A window movable by its background makes
+  AppKit treat every non-opaque view as draggable chrome; the tab strip now
+  opts out explicitly.
+- **Find highlights stranded on the tab you left**, and were wiped wholesale by
+  bracket matching. Both now track their own ranges and clear against the view
+  they were applied to.
+- **A tab stayed dirty after undoing back to the saved state.** Dirty state is
+  now a comparison against a fingerprint of the last saved text, not a
+  one-way flag.
+- **Escape didn't close the find bar.** A field editor binds Escape to
+  `complete:`, not `cancelOperation:`; both are handled now.
+
+### Restored and added after the first pass
+- Files dropped on the **editor body** open as tabs. Registering the window for
+  file drags was not enough: `NSTextView` is a drag destination itself and sits
+  deeper in the hierarchy, so it won and inserted the path as text.
+- **`⌘⇧O`** posts the recent-files list, replacing the shortcut 1.x documented.
+  A submenu cannot carry a useful key equivalent, so it opens as a popup.
+- **Interactive saves run off the main thread.** Closing a dirty tab still
+  blocks, which is correct — the tab cannot go away until the bytes are down.
+  An async write works from a snapshot taken when it started, so text typed
+  while it is in flight correctly leaves the tab dirty.
+- **The language can be set by hand** from the status bar. An untitled tab has
+  no extension to detect from, so nothing was highlighted until it was saved.
+
+### Other changes
+- Glass is on by default and adjustable with `⌘⌥[` / `⌘⌥]`, replacing the
+  `VITRUM_ENABLE_GLASS=1` opt-in and the `[` / `]` bindings that collided with
+  typing brackets.
+- Bundle identifier and app name settled on **Vitrium** throughout — 1.x built
+  a target called `Vitrum`, so this resets saved preferences once.
+- Files are read in one pass rather than through a chunked worker queue; the
+  queue existed to stop concurrent loads corrupting each other, and per-tab
+  documents remove that possibility instead.
+- External-change detection checks on app activation rather than watching file
+  descriptors — that is when the user can act on the answer, and it can't
+  misfire on the app's own writes.
+
+---
+
+## 1.x — Qt6 / C++
 
 ### Polish pass: uniform transparency, redesigned cursor, real QoL features
 - Gutter transparency was fixed at a constant alpha while the text panel
