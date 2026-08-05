@@ -61,10 +61,22 @@ final class EditorPane: NSView {
         scrollView.contentView.drawsBackground = false
         scrollView.contentView.postsBoundsChangedNotifications = true
 
+        // The window uses `.fullSizeContentView`, and AppKit answers that by
+        // insetting scroll views for the titlebar and laying their rulers out
+        // over the inset too — which pushed the gutter's separator up behind the
+        // tab strip. This scroll view does not sit under the titlebar (the tab
+        // strip does), so the automatic inset is simply wrong for it.
+        scrollView.automaticallyAdjustsContentInsets = false
+
         highlighter = SyntaxHighlighter(textStorage: storage)
         ruler = LineNumberRuler(textView: textView)
 
         super.init(frame: frameRect)
+
+        // Hard guarantee that nothing inside the pane — the ruler especially —
+        // can paint outside it and bleed into the chrome above.
+        wantsLayer = true
+        layer?.masksToBounds = true
 
         scrollView.verticalRulerView = ruler
         scrollView.hasVerticalRuler = true
