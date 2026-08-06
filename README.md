@@ -28,16 +28,16 @@ Real compositor blur. Native AppKit. Zero dependencies.
 
 ---
 
-## The short version
+## Overview
 
-No Electron, no WebView, no HTML or CSS anywhere in the stack. The blur is an `NSVisualEffectView` in `.behindWindow` blending mode, which means the compositor samples what is genuinely behind the window. Drag it across your wallpaper and the glass changes with it.
+No Electron, no web view, and no HTML or CSS anywhere in the stack. The blur is an `NSVisualEffectView` in `.behindWindow` blending mode, which means the compositor samples what is genuinely behind the window. Drag it across your wallpaper and the glass changes with it.
 
 ```zsh
 git clone https://github.com/chakri192/vitrium.git
 cd vitrium && ./Scripts/bundle.sh && open build/Vitrium.app
 ```
 
-**Xcode is not required.** Command Line Tools is enough — `xcode-select --install`.
+Full Xcode is not required; the Command Line Tools are sufficient (`xcode-select --install`).
 
 ---
 
@@ -79,7 +79,7 @@ That ordering is the whole design. The obvious alternative — apply rules in se
 - a keyword inside a string is not a keyword
 - a quote inside a comment does not open a string
 
-Whichever of the two you apply last wins in *both* directions, and one of them is always wrong. The Qt version had this bug: `for` and `with` came out bold violet inside Python docstrings.
+Whichever rule is applied last takes precedence in both directions, and one of the two outcomes is therefore always incorrect. An earlier Qt implementation exhibited exactly this defect: `for` and `with` were highlighted as keywords inside Python docstrings.
 
 Only the edited lines are recoloured per keystroke, so typing is O(line), not O(document). Block comments are the exception, since they span arbitrary distance: the recolour window widens to the end of the file whenever an edit touches a `/*` or `*/`, and the scan restarts from the last `*/` above the edit — the nearest point guaranteed to be outside a comment.
 
@@ -142,7 +142,7 @@ Two decisions worth knowing about:
 
 53 tests: highlighting precedence, incremental-versus-full colouring agreement, line numbering, the line-editing operations, search, dirty tracking, and both save paths including the edit-during-async-save race.
 
-Not `swift test`, deliberately. XCTest ships only with Xcode, and the Command Line Tools' copy of swift-testing is missing its Foundation overlay. The suite is a plain executable, so it runs anywhere Swift does — the same bar the app itself is held to.
+`swift test` is deliberately not used. XCTest ships only with Xcode, and the Command Line Tools distribution of swift-testing lacks its Foundation overlay. The suite is a plain executable and therefore runs anywhere Swift does — the same requirement the application itself is held to.
 
 ---
 
