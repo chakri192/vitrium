@@ -168,4 +168,11 @@ No multi-cursor or split view. No LSP, autocomplete or semantic analysis — hig
 
 MIT © V Chakradhar
 
-<sub>The Qt/C++ version this replaced was written with [aider](https://github.com/Aider-AI/aider) driving local models via [Ollama](https://ollama.com). The Swift rewrite was done with Claude Code.</sub>
+<sub>Written with [aider](https://github.com/Aider-AI/aider) driving local models via [Ollama](https://ollama.com).</sub>
+
+## Contributors
+
+| | |
+|---|---|
+| [chakri192](https://github.com/chakri192) | Author |
+| [aider](https://github.com/Aider-AI/aider) | AI pair programmer |
