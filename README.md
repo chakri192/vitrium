@@ -60,6 +60,10 @@ cd vitrium && ./Scripts/bundle.sh && open build/Vitrium.app
 
 ## Three details that make the glass real
 
+<div align="center">
+<img src="docs/glass.svg" width="840" alt="Compositor-level blur versus what a backdrop-filter can reach, and the three ways to break the effect" />
+</div>
+
 **`.behindWindow` blending.** The compositor samples the actual desktop. This is the part a CSS `backdrop-filter` cannot do — it can only blur what the page itself drew.
 
 **Every view non-opaque.** Scroll view, clip view, text view and gutter all set `drawsBackground = false`. A single opaque view anywhere in the chain punches a solid rectangle through the effect.

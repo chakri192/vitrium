@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="460" viewBox="0 0 880 460" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="a" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto"><path d="M0,0 L7.5,3 L0,6 z" fill="#6b7688"/></marker>
+    <marker id="ar" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto"><path d="M0,0 L7.5,3 L0,6 z" fill="#f2707c"/></marker>
+    <linearGradient id="desk" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3a4d7a"/><stop offset="50%" stop-color="#6b4a7d"/><stop offset="100%" stop-color="#2a5a6b"/>
+    </linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="7"/></filter>
+    <clipPath id="win"><rect x="176" y="112" width="212" height="150" rx="9"/></clipPath>
+  </defs>
+  <style>
+    .n { font-size: 11px; font-weight: 700; fill: #e6edf3; }
+    .d { font-size: 9.5px; fill: #8a9bb4; }
+    .m { font-size: 9px; fill: #5d6675; font-family: SFMono-Regular,Menlo,monospace; }
+  </style>
+
+  <rect width="880" height="460" rx="10" fill="#0b0d11"/>
+  <rect x="0.5" y="0.5" width="879" height="459" rx="10" fill="none" stroke="#2b313d"/>
+
+  <text x="28" y="38" font-size="13" font-weight="700" fill="#8a9bb4" letter-spacing="1.3">WHY THE COMPOSITOR HAS TO DO IT</text>
+
+  <!-- the working case -->
+  <text x="28" y="68" font-size="10.5" font-weight="700" fill="#7ddc8b" letter-spacing="1">NSVisualEffectView · .behindWindow</text>
+
+  <rect x="28" y="80" width="404" height="214" rx="9" fill="#12151b" stroke="#7ddc8b" stroke-width="1.2"/>
+
+  <!-- desktop behind -->
+  <rect x="44" y="96" width="372" height="168" rx="7" fill="url(#desk)"/>
+  <circle cx="120" cy="230" r="52" fill="#ffffff" opacity="0.10"/>
+  <circle cx="330" cy="140" r="44" fill="#ffffff" opacity="0.08"/>
+  <text x="56" y="114" font-size="9" fill="#ffffff" opacity="0.55">the actual desktop</text>
+
+  <!-- the window -->
+  <g clip-path="url(#win)">
+    <rect x="176" y="112" width="212" height="150" fill="url(#desk)"/>
+    <circle cx="120" cy="230" r="52" fill="#ffffff" opacity="0.10"/>
+    <circle cx="330" cy="140" r="44" fill="#ffffff" opacity="0.08"/>
+    <g filter="url(#blur)">
+      <rect x="176" y="112" width="212" height="150" fill="url(#desk)"/>
+      <circle cx="120" cy="230" r="52" fill="#ffffff" opacity="0.22"/>
+      <circle cx="330" cy="140" r="44" fill="#ffffff" opacity="0.20"/>
+    </g>
+    <rect x="176" y="112" width="212" height="150" fill="#0b0d11" opacity="0.52"/>
+    <g font-family="SFMono-Regular,Menlo,monospace" font-size="9">
+      <text x="190" y="136" fill="#7d8899">1</text><text x="206" y="136" fill="#c4a2ff">func</text><text x="236" y="136" fill="#8ee39a">applyGlass</text><text x="298" y="136" fill="#e6edf3">() {</text>
+      <text x="190" y="152" fill="#7d8899">2</text><text x="214" y="152" fill="#e6edf3">view.blendingMode =</text>
+      <text x="190" y="168" fill="#7d8899">3</text><text x="230" y="168" fill="#f0b866">.behindWindow</text>
+      <text x="190" y="184" fill="#7d8899">4</text><text x="214" y="184" fill="#e6edf3">view.state = </text><text x="298" y="184" fill="#f0b866">.active</text>
+      <text x="190" y="200" fill="#7d8899">5</text><text x="206" y="200" fill="#e6edf3">}</text>
+      <text x="190" y="222" fill="#7d8899">6</text>
+      <text x="190" y="238" fill="#7d8899">7</text><text x="214" y="238" fill="#6c7a8a">// the wallpaper is</text>
+      <text x="190" y="254" fill="#7d8899">8</text><text x="214" y="254" fill="#6c7a8a">// genuinely under this</text>
+    </g>
+  </g>
+  <rect x="176" y="112" width="212" height="150" rx="9" fill="none" stroke="#ffffff" stroke-opacity="0.22"/>
+
+  <text x="44" y="286" class="d">Drag it across your wallpaper and the glass changes with it.</text>
+
+  <!-- the failing case -->
+  <text x="456" y="68" font-size="10.5" font-weight="700" fill="#f2707c" letter-spacing="1">CSS backdrop-filter · what it cannot do</text>
+
+  <rect x="456" y="80" width="396" height="214" rx="9" fill="#12151b" stroke="#f2707c" stroke-width="1.2"/>
+  <rect x="472" y="96" width="364" height="168" rx="7" fill="url(#desk)"/>
+  <circle cx="548" cy="230" r="52" fill="#ffffff" opacity="0.10"/>
+  <circle cx="758" cy="140" r="44" fill="#ffffff" opacity="0.08"/>
+  <text x="484" y="114" font-size="9" fill="#ffffff" opacity="0.55">the same desktop</text>
+
+  <rect x="604" y="112" width="212" height="150" rx="9" fill="#1c1c22" opacity="0.94"/>
+  <rect x="604" y="112" width="212" height="150" rx="9" fill="none" stroke="#ffffff" stroke-opacity="0.14"/>
+  <text x="710" y="176" font-size="11" fill="#f2707c" text-anchor="middle">a flat panel</text>
+  <text x="710" y="194" class="d" text-anchor="middle" font-size="9.5">it can only blur what the page</text>
+  <text x="710" y="207" class="d" text-anchor="middle" font-size="9.5">itself drew. The desktop is not</text>
+  <text x="710" y="220" class="d" text-anchor="middle" font-size="9.5">available to it, at any price.</text>
+
+  <text x="472" y="286" class="d">This is the reason it isn't Electron.</text>
+
+  <!-- the three requirements -->
+  <line x1="28" y1="308" x2="852" y2="308" stroke="#2b313d"/>
+  <text x="28" y="332" font-size="11" font-weight="700" fill="#8a9bb4" letter-spacing="1.1">AND THREE THINGS THAT WILL BREAK IT</text>
+
+  <rect x="28" y="344" width="264" height="100" rx="8" fill="#12151b" stroke="#39414f" stroke-width="1.1"/>
+  <text x="44" y="366" class="n">one opaque view, anywhere</text>
+  <text x="44" y="386" class="d">Scroll view, clip view, text view and</text>
+  <text x="44" y="400" class="d">gutter all set drawsBackground = false.</text>
+  <text x="44" y="414" class="d">A single one left opaque punches a</text>
+  <text x="44" y="428" class="d">solid rectangle straight through.</text>
+
+  <rect x="308" y="344" width="264" height="100" rx="8" fill="#12151b" stroke="#39414f" stroke-width="1.1"/>
+  <text x="324" y="366" class="n">one tint layer, not many</text>
+  <text x="324" y="386" class="d">A single dark wash over the blur,</text>
+  <text x="324" y="400" class="d">adjustable at runtime.</text>
+  <text x="324" y="414" class="d">Tinting each view separately is</text>
+  <text x="324" y="428" class="d">exactly what makes glass look patchy.</text>
+
+  <rect x="588" y="344" width="264" height="100" rx="8" fill="#12151b" stroke="#39414f" stroke-width="1.1"/>
+  <text x="604" y="366" class="n">the draggable-chrome trap</text>
+  <text x="604" y="386" class="d">A window movable by its background makes</text>
+  <text x="604" y="400" class="d">AppKit treat every non-opaque view as</text>
+  <text x="604" y="414" class="d">chrome — so the tab strip must opt out, or</text>
+  <text x="604" y="428" class="d">clicking a tab drags the whole window.</text>
+</svg>
